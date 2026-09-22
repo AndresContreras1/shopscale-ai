@@ -1,6 +1,7 @@
 package com.shopscale.ai;
 
 import jakarta.validation.constraints.Pattern;
+import java.io.Serializable;
 import java.time.Instant;
 
 public final class AiDtos {
@@ -22,7 +23,7 @@ public final class AiDtos {
      * @param facts    the computed numbers the report is based on, so the UI can show them next to the text
      */
     public record AiReport(ReportType type, String provider, String model, boolean fallback, long latencyMs,
-                           Instant generatedAt, String markdown, Object facts) {
+                           Instant generatedAt, String markdown, Object facts) implements Serializable {
     }
 
     public record AiStatus(String provider, String model, boolean liveProvider) {

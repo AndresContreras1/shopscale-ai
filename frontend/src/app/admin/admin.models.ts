@@ -96,6 +96,18 @@ export interface AiStatus {
   liveProvider: boolean;
 }
 
+export interface ImportJob {
+  id: string;
+  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+  fileName: string;
+  totalRows: number;
+  processedRows: number;
+  created: number;
+  updated: number;
+  failed: number;
+  errors: string | null;
+}
+
 export interface AuditEntry {
   id: number;
   actor: string;

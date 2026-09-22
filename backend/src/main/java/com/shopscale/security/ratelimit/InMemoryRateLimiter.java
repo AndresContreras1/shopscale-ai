@@ -3,6 +3,7 @@ package com.shopscale.security.ratelimit;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
  * counts separately, so the effective limit multiplies by the number of instances.
  */
 @Component
+@ConditionalOnProperty(name = "app.security.rate-limit.store", havingValue = "memory", matchIfMissing = true)
 public class InMemoryRateLimiter implements RateLimiter {
 
     private final ConcurrentHashMap<String, AtomicLong> counters = new ConcurrentHashMap<>();

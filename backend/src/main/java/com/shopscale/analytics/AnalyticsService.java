@@ -8,6 +8,7 @@ import com.shopscale.analytics.AnalyticsDtos.ProductInsight;
 import com.shopscale.analytics.AnalyticsDtos.SalesKpis;
 import com.shopscale.analytics.AnalyticsDtos.StockHealth;
 import com.shopscale.catalog.ProductStatus;
+import com.shopscale.common.CacheConfig;
 import com.shopscale.inventory.InventoryItem;
 import com.shopscale.inventory.InventoryRepository;
 import com.shopscale.orders.OrderStatus;
@@ -26,6 +27,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,6 +102,7 @@ public class AnalyticsService {
                 .toList();
     }
 
+    @Cacheable(CacheConfig.DASHBOARD)
     @Transactional(readOnly = true)
     public Dashboard dashboard() {
         List<ProductInsight> insights = productInsights();

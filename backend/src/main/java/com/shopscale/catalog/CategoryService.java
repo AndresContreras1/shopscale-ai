@@ -3,8 +3,11 @@ package com.shopscale.catalog;
 import com.shopscale.catalog.dto.CategoryRequest;
 import com.shopscale.catalog.dto.CategoryResponse;
 import com.shopscale.common.BusinessException;
+import com.shopscale.common.CacheConfig;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +18,13 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @Cacheable(CacheConfig.CATEGORIES)
     @Transactional(readOnly = true)
     public List<CategoryResponse> findAll() {
         return categoryRepository.findAll(Sort.by("name")).stream().map(CategoryResponse::from).toList();
     }
 
+    @CacheEvict(cacheNames = CacheConfig.CATEGORIES, allEntries = true)
     @Transactional
     public CategoryResponse create(CategoryRequest request) {
         if (categoryRepository.existsBySlug(request.slug())) {

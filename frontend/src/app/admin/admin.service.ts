@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Page, Product } from '../core/models';
-import { AiReport, AiStatus, AuditEntry, Dashboard, FlashSaleResult, InventoryRow, Movement } from './admin.models';
+import { AiReport, AiStatus, AuditEntry, Dashboard, FlashSaleResult, ImportJob, InventoryRow, Movement } from './admin.models';
 
 export interface ProductForm {
   sku: string;
@@ -64,6 +64,16 @@ export class AdminService {
 
   updateProduct(id: number, form: ProductForm): Observable<Product> {
     return this.http.put<Product>(`/api/products/${id}`, form);
+  }
+
+  importCsv(file: File): Observable<ImportJob> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<ImportJob>('/api/products/import', form);
+  }
+
+  importStatus(id: string): Observable<ImportJob> {
+    return this.http.get<ImportJob>(`/api/products/import/${id}`);
   }
 
   audit(page = 0): Observable<Page<AuditEntry>> {

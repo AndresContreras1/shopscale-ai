@@ -10,6 +10,7 @@ import com.shopscale.analytics.AnalyticsService;
 import com.shopscale.audit.AuditService;
 import com.shopscale.catalog.Product;
 import com.shopscale.catalog.ProductRepository;
+import com.shopscale.common.CacheConfig;
 import com.shopscale.common.NotFoundException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -19,6 +20,7 @@ import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,6 +55,8 @@ public class AiReportService {
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
 
+    /** Cached per language; fallback reports are not cached so a recovered provider is used at once. */
+    @Cacheable(cacheNames = CacheConfig.AI_REPORTS, key = "'inventory-' + #lang", unless = "#result.fallback")
     public AiReport inventoryReport(String lang) {
         List<ProductInsight> insights = analytics.productInsights();
         var kpis = analytics.inventoryKpis(insights);
@@ -77,6 +81,7 @@ public class AiReportService {
                 () -> fallbackWriter.inventory(kpis, restock, slow, lang));
     }
 
+    @Cacheable(cacheNames = CacheConfig.AI_REPORTS, key = "'sales-' + #lang", unless = "#result.fallback")
     public AiReport salesReport(String lang) {
         List<ProductInsight> insights = analytics.productInsights();
         var kpis = analytics.salesKpis();
