@@ -17,11 +17,12 @@ public record ProductResponse(
         BigDecimal compareAtPrice,
         String imageUrl,
         ProductStatus status,
+        Integer availableStock,
         Instant updatedAt) {
 
-    public static ProductResponse from(Product p) {
+    public static ProductResponse from(Product p, Integer availableStock) {
         return new ProductResponse(p.getId(), p.getSku(), p.getName(), p.getDescription(), p.getBrand(),
                 p.getCategory().getId(), p.getCategory().getName(), p.getPrice(), p.getCompareAtPrice(),
-                p.getImageUrl(), p.getStatus(), p.getUpdatedAt());
+                p.getImageUrl(), p.getStatus(), availableStock, p.getUpdatedAt());
     }
 }
