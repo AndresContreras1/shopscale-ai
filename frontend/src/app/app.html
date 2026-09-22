@@ -1,0 +1,31 @@
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="logo" routerLink="/">Shop<span>Scale</span></a>
+    <nav>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Store</a>
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/orders" routerLinkActive="active">My orders</a>
+      }
+      <a routerLink="/cart" routerLinkActive="active" class="cart-link">
+        Cart
+        @if (cart.count() > 0) {
+          <span class="count">{{ cart.count() }}</span>
+        }
+      </a>
+      @if (auth.user(); as user) {
+        <span class="user">{{ user.fullName }} <small>({{ user.role }})</small></span>
+        <button class="btn small" (click)="auth.logout()">Sign out</button>
+      } @else {
+        <a class="btn small primary" routerLink="/login">Sign in</a>
+      }
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>
+
+<footer class="container footer muted">
+  ShopScale AI · demo project · Spring Boot + Angular
+</footer>
