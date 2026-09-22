@@ -4,6 +4,7 @@ import com.shopscale.catalog.Category;
 import com.shopscale.catalog.CategoryRepository;
 import com.shopscale.catalog.Product;
 import com.shopscale.catalog.ProductRepository;
+import com.shopscale.inventory.InventoryService;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,8 +29,13 @@ public class DataSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
+    /** Initial units per product: a mix of healthy, low and out-of-stock items so alerts have data. */
+    private static final int[] STOCK_PATTERN = {120, 45, 8, 60, 3, 200, 75, 12, 35, 0, 90, 25, 150, 6, 40};
+    private static final int REORDER_POINT = 10;
+
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final InventoryService inventoryService;
     private final TransactionTemplate transactionTemplate;
 
     @Override
@@ -51,7 +57,8 @@ public class DataSeeder implements ApplicationRunner {
                 .map(c -> categoryRepository.save(new Category(c.name(), c.slug(), c.description())))
                 .collect(Collectors.toMap(Category::getSlug, Function.identity()));
 
-        for (SeedCatalog.SeedProduct seed : SeedCatalog.PRODUCTS) {
+        for (int i = 0; i < SeedCatalog.PRODUCTS.size(); i++) {
+            SeedCatalog.SeedProduct seed = SeedCatalog.PRODUCTS.get(i);
             Product product = new Product();
             product.setSku(seed.sku());
             product.setName(seed.name());
@@ -61,6 +68,7 @@ public class DataSeeder implements ApplicationRunner {
             product.setCompareAtPrice(seed.compareAtValue());
             product.setDescription(seed.name() + " by " + seed.brand() + ".");
             productRepository.save(product);
+            inventoryService.initialize(product, STOCK_PATTERN[i % STOCK_PATTERN.length], REORDER_POINT);
         }
     }
 }

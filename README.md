@@ -1,4 +1,4 @@
-﻿# ShopScale AI
+# ShopScale AI
 
 Demo e-commerce platform focused on the problems that show up when an online store grows:
 **product and inventory management, security, scalability, and AI-assisted reporting.**
@@ -37,7 +37,7 @@ docker compose up --build
 
 - [x] Project setup
 - [x] Catalog API (products, categories, filters, pagination)
-- [ ] Inventory management (stock ledger, reservations, optimistic locking)
+- [x] Inventory management (stock ledger, reservations, optimistic locking)
 - [ ] Security (JWT, roles, rate limiting, audit log)
 - [ ] Orders and checkout
 - [ ] AI reports (Gemini / OpenAI / mock)

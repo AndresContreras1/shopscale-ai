@@ -11,6 +11,9 @@ import com.shopscale.catalog.dto.ProductResponse;
 import com.shopscale.common.BusinessException;
 import com.shopscale.common.NotFoundException;
 import com.shopscale.common.PageResponse;
+import com.shopscale.inventory.InventoryService;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,6 +26,9 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final InventoryService inventoryService;
+
+    private static final int DEFAULT_REORDER_POINT = 10;
 
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> search(ProductFilter filter, Pageable pageable) {
@@ -31,17 +37,19 @@ public class ProductService {
                 inCategory(filter.categoryId()),
                 priceBetween(filter.minPrice(), filter.maxPrice()),
                 hasStatus(filter.status()));
-        return PageResponse.from(productRepository.findAll(spec, pageable).map(ProductResponse::from));
+        var page = productRepository.findAll(spec, pageable);
+        Map<Long, Integer> stock = inventoryService.availableFor(page.map(Product::getId).getContent());
+        return PageResponse.from(page.map(p -> ProductResponse.from(p, stock.get(p.getId()))));
     }
 
     @Transactional(readOnly = true)
     public ProductResponse findById(Long id) {
-        return ProductResponse.from(getEntity(id));
+        return toResponse(getEntity(id));
     }
 
     @Transactional(readOnly = true)
     public ProductResponse findBySku(String sku) {
-        return productRepository.findBySku(sku).map(ProductResponse::from)
+        return productRepository.findBySku(sku).map(this::toResponse)
                 .orElseThrow(() -> new NotFoundException("Product", sku));
     }
 
@@ -52,7 +60,11 @@ public class ProductService {
         }
         Product product = new Product();
         apply(product, request);
-        return ProductResponse.from(productRepository.save(product));
+        productRepository.save(product);
+        inventoryService.initialize(product,
+                request.initialStock() == null ? 0 : request.initialStock(),
+                request.reorderPoint() == null ? DEFAULT_REORDER_POINT : request.reorderPoint());
+        return toResponse(product);
     }
 
     @Transactional
@@ -62,7 +74,7 @@ public class ProductService {
             throw new BusinessException("SKU already exists: " + request.sku());
         }
         apply(product, request);
-        return ProductResponse.from(product);
+        return toResponse(product);
     }
 
     /**
@@ -71,6 +83,11 @@ public class ProductService {
     @Transactional
     public void archive(Long id) {
         getEntity(id).setStatus(ProductStatus.ARCHIVED);
+    }
+
+    private ProductResponse toResponse(Product product) {
+        return ProductResponse.from(product, inventoryService.availableFor(List.of(product.getId()))
+                .get(product.getId()));
     }
 
     Product getEntity(Long id) {
