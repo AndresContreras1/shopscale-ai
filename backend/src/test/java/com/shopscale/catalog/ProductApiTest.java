@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
@@ -46,6 +47,7 @@ class ProductApiTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void rejectsDuplicateSku() throws Exception {
         Long categoryId = categoryRepository.findBySlug("electronics").orElseThrow().getId();
         String body = """
@@ -56,6 +58,7 @@ class ProductApiTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void validatesInput() throws Exception {
         String body = """
                 {"sku":"bad sku","name":"","categoryId":1,"price":-5}

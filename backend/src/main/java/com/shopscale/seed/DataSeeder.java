@@ -5,6 +5,9 @@ import com.shopscale.catalog.CategoryRepository;
 import com.shopscale.catalog.Product;
 import com.shopscale.catalog.ProductRepository;
 import com.shopscale.inventory.InventoryService;
+import com.shopscale.security.Role;
+import com.shopscale.security.User;
+import com.shopscale.security.UserRepository;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,6 +18,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -36,10 +40,13 @@ public class DataSeeder implements ApplicationRunner {
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final InventoryService inventoryService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final TransactionTemplate transactionTemplate;
 
     @Override
     public void run(ApplicationArguments args) {
+        seedUsers();
         if (productRepository.count() > 0) {
             log.info("Database already has data, skipping seed");
             return;
@@ -49,6 +56,25 @@ public class DataSeeder implements ApplicationRunner {
             log.info("Seeded {} categories and {} products", SeedCatalog.CATEGORIES.size(), SeedCatalog.PRODUCTS.size());
         } catch (DataIntegrityViolationException ex) {
             log.info("Another instance already seeded the database");
+        }
+    }
+
+    /** Demo accounts, one per role. Documented in the README; never use these outside a demo. */
+    private void seedUsers() {
+        if (userRepository.count() > 0) {
+            return;
+        }
+        try {
+            transactionTemplate.executeWithoutResult(status -> {
+                userRepository.save(new User("admin@shopscale.dev", passwordEncoder.encode("Admin123!"),
+                        "Ada Admin", Role.ADMIN));
+                userRepository.save(new User("operator@shopscale.dev", passwordEncoder.encode("Operator123!"),
+                        "Oscar Operator", Role.OPERATOR));
+                userRepository.save(new User("customer@shopscale.dev", passwordEncoder.encode("Customer123!"),
+                        "Carla Customer", Role.CUSTOMER));
+            });
+        } catch (DataIntegrityViolationException ex) {
+            log.info("Another instance already seeded the users");
         }
     }
 

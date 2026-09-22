@@ -5,6 +5,7 @@ import static com.shopscale.catalog.ProductSpecifications.inCategory;
 import static com.shopscale.catalog.ProductSpecifications.matchesText;
 import static com.shopscale.catalog.ProductSpecifications.priceBetween;
 
+import com.shopscale.audit.AuditService;
 import com.shopscale.catalog.dto.ProductFilter;
 import com.shopscale.catalog.dto.ProductRequest;
 import com.shopscale.catalog.dto.ProductResponse;
@@ -27,6 +28,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final InventoryService inventoryService;
+    private final AuditService auditService;
 
     private static final int DEFAULT_REORDER_POINT = 10;
 
@@ -64,6 +66,7 @@ public class ProductService {
         inventoryService.initialize(product,
                 request.initialStock() == null ? 0 : request.initialStock(),
                 request.reorderPoint() == null ? DEFAULT_REORDER_POINT : request.reorderPoint());
+        auditService.record("PRODUCT_CREATED", "Product", product.getId(), product.getSku() + " at " + product.getPrice());
         return toResponse(product);
     }
 
@@ -73,7 +76,11 @@ public class ProductService {
         if (!product.getSku().equals(request.sku()) && productRepository.existsBySku(request.sku())) {
             throw new BusinessException("SKU already exists: " + request.sku());
         }
+        var oldPrice = product.getPrice();
         apply(product, request);
+        String details = oldPrice.compareTo(product.getPrice()) != 0
+                ? "Price changed from " + oldPrice + " to " + product.getPrice() : null;
+        auditService.record(details != null ? "PRICE_CHANGED" : "PRODUCT_UPDATED", "Product", id, details);
         return toResponse(product);
     }
 
@@ -83,6 +90,7 @@ public class ProductService {
     @Transactional
     public void archive(Long id) {
         getEntity(id).setStatus(ProductStatus.ARCHIVED);
+        auditService.record("PRODUCT_ARCHIVED", "Product", id, null);
     }
 
     private ProductResponse toResponse(Product product) {

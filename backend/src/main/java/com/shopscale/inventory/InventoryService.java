@@ -1,5 +1,6 @@
 package com.shopscale.inventory;
 
+import com.shopscale.audit.AuditService;
 import com.shopscale.catalog.Product;
 import com.shopscale.common.BusinessException;
 import com.shopscale.common.CurrentActor;
@@ -28,6 +29,7 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final StockMovementRepository movementRepository;
     private final EntityManager entityManager;
+    private final AuditService auditService;
 
     @Transactional
     public InventoryItem initialize(Product product, int onHand, int reorderPoint) {
@@ -55,6 +57,7 @@ public class InventoryService {
         InventoryItem item = getItem(productId);
         item.adjust(delta);
         record(item, MovementType.ADJUSTMENT, delta, reason, reference);
+        auditService.record("STOCK_ADJUSTED", "Product", productId, delta + " units: " + reason);
         return InventoryResponse.from(item);
     }
 
@@ -92,6 +95,7 @@ public class InventoryService {
     public InventoryResponse updateReorderPoint(Long productId, int reorderPoint) {
         InventoryItem item = getItem(productId);
         item.setReorderPoint(reorderPoint);
+        auditService.record("REORDER_POINT_CHANGED", "Product", productId, "New reorder point " + reorderPoint);
         return InventoryResponse.from(item);
     }
 
