@@ -1,8 +1,9 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService, errorMessage } from '../core/api.service';
 import { Category, Page, Product } from '../core/models';
+import { ImportJob } from './admin.models';
 import { AdminService, ProductForm } from './admin.service';
 
 const EMPTY: ProductForm = {
@@ -24,8 +25,30 @@ const EMPTY: ProductForm = {
   template: `
     <div class="page-head">
       <h1>Products</h1>
-      <button class="btn primary" (click)="startCreate()">+ New product</button>
+      <div class="actions">
+        <label class="btn">
+          ⬆ Import CSV
+          <input type="file" accept=".csv" hidden (change)="importFile($event)" />
+        </label>
+        <button class="btn primary" (click)="startCreate()">+ New product</button>
+      </div>
     </div>
+    @if (job(); as j) {
+      <div class="card import-job">
+        <div class="row">
+          <strong>Bulk import · {{ j.fileName }}</strong>
+          <span class="status" [attr.data-status]="j.status === 'COMPLETED' ? 'PAID' : j.status === 'FAILED' ? 'CANCELLED' : 'SHIPPED'">{{ j.status }}</span>
+        </div>
+        <div class="progress"><div [style.width.%]="j.totalRows ? (j.processedRows / j.totalRows) * 100 : 0"></div></div>
+        <small class="muted">
+          {{ j.processedRows }} / {{ j.totalRows }} rows · {{ j.created }} created · {{ j.updated }} updated · {{ j.failed }} failed.
+          Processed in the background in batches of 200: the API stays responsive.
+        </small>
+        @if (j.errors) {
+          <pre>{{ j.errors }}</pre>
+        }
+      </div>
+    }
     @if (error()) {
       <div class="alert error">{{ error() }}</div>
     }
@@ -102,7 +125,7 @@ const EMPTY: ProductForm = {
     }
   `,
 })
-export class ProductsPage implements OnInit {
+export class ProductsPage implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly admin = inject(AdminService);
 
@@ -114,6 +137,8 @@ export class ProductsPage implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly notice = signal<string | null>(null);
   protected query = '';
+  protected readonly job = signal<ImportJob | null>(null);
+  private poller?: ReturnType<typeof setInterval>;
 
   ngOnInit(): void {
     this.api.categories().subscribe((c) => this.categories.set(c));
@@ -124,6 +149,38 @@ export class ProductsPage implements OnInit {
     this.api.products({ q: this.query, page: index, size: 15, sort: 'sku' }).subscribe({
       next: (p) => this.page.set(p),
       error: (e) => this.error.set(errorMessage(e)),
+    });
+  }
+
+  importFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    this.error.set(null);
+    this.admin.importCsv(file).subscribe({
+      next: (job) => {
+        this.job.set(job);
+        clearInterval(this.poller);
+        this.poller = setInterval(() => this.pollImport(job.id), 700);
+      },
+      error: (e) => this.error.set(errorMessage(e)),
+    });
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.poller);
+  }
+
+  private pollImport(id: string): void {
+    this.admin.importStatus(id).subscribe((job) => {
+      this.job.set(job);
+      if (job.status === 'COMPLETED' || job.status === 'FAILED') {
+        clearInterval(this.poller);
+        this.load(0);
+      }
     });
   }
 

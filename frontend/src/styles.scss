@@ -388,6 +388,15 @@ pre { background: var(--bg); padding: 1rem; border-radius: 10px; overflow: auto;
 }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; }
 textarea.input { resize: vertical; }
+.page-head .actions { display: flex; gap: 0.75rem; }
+.import-job {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  .row { display: flex; justify-content: space-between; align-items: center; }
+}
+.progress { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; div { height: 100%; background: var(--primary); transition: width 0.3s; } }
+.served-by { margin-top: 0.4rem; code { background: var(--surface); padding: 1px 6px; border-radius: 6px; border: 1px solid var(--border); } }
 
 @media (max-width: 800px) {
   .admin, .two-col { grid-template-columns: 1fr; }

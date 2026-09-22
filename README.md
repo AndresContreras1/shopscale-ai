@@ -13,7 +13,8 @@ Demo e-commerce platform focused on the problems that show up when an online sto
 | Database | PostgreSQL 16 (H2 in-memory for local runs and tests) |
 | Frontend | Angular 20 (standalone components, signals, lazy routes) |
 | Docs | OpenAPI / Swagger UI |
-| Infra | Docker Compose |
+| Cache / shared state | Redis (Caffeine in memory for local runs) |
+| Infra | Docker Compose, Nginx load balancer, 2+ API replicas |
 
 ## Run locally
 
@@ -40,9 +41,9 @@ Open http://localhost:4200.
 docker compose up --build
 ```
 
-- API: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui.html
-- Health: http://localhost:8080/actuator/health
+- App (through Nginx): http://localhost:8088
+- Swagger UI: http://localhost:8088/swagger-ui/index.html
+- Scale out: `docker compose up -d --scale api=4`
 
 ## AI reports
 
@@ -77,5 +78,5 @@ Seeded automatically on an empty database. **Demo only.**
 - [x] AI reports (Gemini / OpenAI / mock)
 - [x] Angular storefront
 - [x] Admin dashboard
-- [ ] Scalability (Redis cache, load balancing, async bulk import)
+- [x] Scalability (Redis cache, load balancing, async bulk import)
 - [ ] CI and load testing
