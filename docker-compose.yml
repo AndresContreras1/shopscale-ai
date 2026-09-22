@@ -39,6 +39,8 @@ services:
       REDIS_HOST: redis
       REDIS_ENABLED: "true"
       RATE_LIMIT_STORE: redis
+      # Raise it for load tests, where all traffic comes from one IP.
+      RATE_LIMIT_API_PER_MINUTE: ${RATE_LIMIT_API_PER_MINUTE:-300}
       DB_POOL_SIZE: 10
       JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-0123456789}
       CORS_ALLOWED_ORIGINS: http://localhost:8088

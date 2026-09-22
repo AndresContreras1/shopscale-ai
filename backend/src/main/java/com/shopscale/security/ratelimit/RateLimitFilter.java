@@ -57,7 +57,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    /** Behind the Nginx load balancer the real client address comes in X-Forwarded-For. */
+    /**
+     * Behind the Nginx load balancer the real client address comes in X-Forwarded-For. The header is
+     * trusted only because Nginx overwrites it with the connection address; the API must not be
+     * reachable directly in production.
+     */
     private static String clientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {

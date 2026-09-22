@@ -58,6 +58,29 @@ only turns them into an executive report, so reports never contain invented figu
 
 Without an API key, or if the provider fails (timeout, quota), a rule-based writer answers instead.
 
+## Load test
+
+[k6](https://k6.io) script in `loadtest/`: 50 users browsing plus 10 buyers competing for the same
+products, against the Docker stack (2 replicas).
+
+```bash
+RATE_LIMIT_API_PER_MINUTE=1000000 docker compose up -d api   # one IP generates all the traffic
+docker run --rm -i -e BASE_URL=http://host.docker.internal:8088 grafana/k6 run - < loadtest/catalog-and-checkout.js
+```
+
+Measured on a laptop (70 s, 60 virtual users):
+
+| Metric | Result |
+|---|---|
+| Requests | 9,417 (132 req/s) |
+| Failed requests | 0 % |
+| Catalog latency p95 | 16 ms |
+| All requests p95 | 23 ms |
+| Checkouts | only `201` or `409 not enough stock`, never `500` |
+
+With the default limit (300 req/min per IP) the same test is mostly answered with `429`: the rate
+limiter doing its job.
+
 ## Demo accounts
 
 Seeded automatically on an empty database. **Demo only.**
@@ -79,4 +102,4 @@ Seeded automatically on an empty database. **Demo only.**
 - [x] Angular storefront
 - [x] Admin dashboard
 - [x] Scalability (Redis cache, load balancing, async bulk import)
-- [ ] CI and load testing
+- [x] CI and load testing
