@@ -16,6 +16,8 @@ spring:
     open-in-view: false
     properties:
       hibernate:
+        # Loads lazy collections for a whole page in one query instead of one per row (N+1).
+        default_batch_fetch_size: 50
         jdbc:
           batch_size: 50
         order_inserts: true
@@ -39,6 +41,10 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  orders:
+    # Unpaid checkouts hold stock for this long, then the reservation is released.
+    reservation-ttl: PT15M
+    expiry-check-interval: PT1M
   security:
     jwt:
       # Override with the JWT_SECRET environment variable in any real deployment.
