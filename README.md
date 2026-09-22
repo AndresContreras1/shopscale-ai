@@ -76,6 +76,6 @@ Seeded automatically on an empty database. **Demo only.**
 - [x] Orders and checkout
 - [x] AI reports (Gemini / OpenAI / mock)
 - [x] Angular storefront
-- [ ] Admin dashboard
+- [x] Admin dashboard
 - [ ] Scalability (Redis cache, load balancing, async bulk import)
 - [ ] CI and load testing

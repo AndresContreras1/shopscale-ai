@@ -3,6 +3,9 @@
     <a class="logo" routerLink="/">Shop<span>Scale</span></a>
     <nav>
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Store</a>
+      @if (auth.isStaff()) {
+        <a routerLink="/admin" routerLinkActive="active">Back office</a>
+      }
       @if (auth.isLoggedIn()) {
         <a routerLink="/orders" routerLinkActive="active">My orders</a>
       }
