@@ -1,5 +1,6 @@
 package com.shopscale.inventory;
 
+import com.shopscale.catalog.ProductStatus;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +34,9 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, Long> 
     Optional<InventoryItem> findByProductId(Long productId);
 
     List<InventoryItem> findByProductIdIn(Collection<Long> productIds);
+
+    @EntityGraph(attributePaths = {"product", "product.category"})
+    List<InventoryItem> findByProductStatus(ProductStatus status);
 
     @EntityGraph(attributePaths = "product")
     Page<InventoryItem> findAllBy(Pageable pageable);

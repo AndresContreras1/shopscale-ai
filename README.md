@@ -33,6 +33,19 @@ docker compose up --build
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - Health: http://localhost:8080/actuator/health
 
+## AI reports
+
+The backend computes the numbers (KPIs, days of stock cover, suggested restock quantities) and the AI
+only turns them into an executive report, so reports never contain invented figures.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `AI_PROVIDER` | `mock` | `mock`, `gemini` or `openai` |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | - / `gemini-3.8-flash` | Google Gemini |
+| `OPENAI_API_KEY` / `OPENAI_MODEL` | - / `gpt-4o-mini` | OpenAI |
+
+Without an API key, or if the provider fails (timeout, quota), a rule-based writer answers instead.
+
 ## Demo accounts
 
 Seeded automatically on an empty database. **Demo only.**
@@ -50,7 +63,7 @@ Seeded automatically on an empty database. **Demo only.**
 - [x] Inventory management (stock ledger, reservations, optimistic locking)
 - [x] Security (JWT, roles, rate limiting, audit log)
 - [x] Orders and checkout
-- [ ] AI reports (Gemini / OpenAI / mock)
+- [x] AI reports (Gemini / OpenAI / mock)
 - [ ] Angular storefront
 - [ ] Admin dashboard
 - [ ] Scalability (Redis cache, load balancing, async bulk import)

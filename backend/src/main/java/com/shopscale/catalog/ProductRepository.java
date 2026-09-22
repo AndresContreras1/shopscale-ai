@@ -15,6 +15,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsBySku(String sku);
 
+    @EntityGraph(attributePaths = "category")
+    Optional<Product> findWithCategoryById(Long id);
+
     /** Fetches the category in the same query to avoid the N+1 problem on listings. */
     @Override
     @EntityGraph(attributePaths = "category")
