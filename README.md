@@ -33,12 +33,22 @@ docker compose up --build
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - Health: http://localhost:8080/actuator/health
 
+## Demo accounts
+
+Seeded automatically on an empty database. **Demo only.**
+
+| Role | Email | Password | Can do |
+|---|---|---|---|
+| ADMIN | admin@shopscale.dev | Admin123! | Everything: catalog, prices, inventory, reports, audit |
+| OPERATOR | operator@shopscale.dev | Operator123! | Inventory only |
+| CUSTOMER | customer@shopscale.dev | Customer123! | Storefront and own orders |
+
 ## Roadmap
 
 - [x] Project setup
 - [x] Catalog API (products, categories, filters, pagination)
 - [x] Inventory management (stock ledger, reservations, optimistic locking)
-- [ ] Security (JWT, roles, rate limiting, audit log)
+- [x] Security (JWT, roles, rate limiting, audit log)
 - [ ] Orders and checkout
 - [ ] AI reports (Gemini / OpenAI / mock)
 - [ ] Angular storefront
