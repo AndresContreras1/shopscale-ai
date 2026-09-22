@@ -49,7 +49,7 @@ Seeded automatically on an empty database. **Demo only.**
 - [x] Catalog API (products, categories, filters, pagination)
 - [x] Inventory management (stock ledger, reservations, optimistic locking)
 - [x] Security (JWT, roles, rate limiting, audit log)
-- [ ] Orders and checkout
+- [x] Orders and checkout
 - [ ] AI reports (Gemini / OpenAI / mock)
 - [ ] Angular storefront
 - [ ] Admin dashboard

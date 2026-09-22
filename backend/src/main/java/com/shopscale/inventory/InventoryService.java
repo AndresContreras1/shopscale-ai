@@ -11,6 +11,7 @@ import com.shopscale.inventory.dto.MovementResponse;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,28 @@ public class InventoryService {
                     CurrentActor.name()));
         }
         return item;
+    }
+
+    /**
+     * Imports historical stock data (demo seed or migration from another system): one initial receipt
+     * followed by the past sales, so the ledger explains the current stock.
+     */
+    @Transactional
+    public void importHistory(Product product, int currentOnHand, int reorderPoint, Instant since,
+                              List<HistoricalSale> sales) {
+        int sold = sales.stream().mapToInt(HistoricalSale::quantity).sum();
+        InventoryItem item = inventoryRepository.save(new InventoryItem(product, currentOnHand + sold, reorderPoint));
+        movementRepository.save(new StockMovement(item, MovementType.RECEIPT, currentOnHand + sold,
+                "Initial stock", "IMPORT", "system", since));
+        for (HistoricalSale sale : sales) {
+            item.reserve(sale.quantity());
+            item.commit(sale.quantity());
+            movementRepository.save(new StockMovement(item, MovementType.SALE, -sale.quantity(), "Order paid",
+                    sale.reference(), "system", sale.when()));
+        }
+    }
+
+    public record HistoricalSale(Instant when, int quantity, String reference) {
     }
 
     @Transactional
