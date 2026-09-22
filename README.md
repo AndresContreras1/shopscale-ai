@@ -11,6 +11,7 @@ Demo e-commerce platform focused on the problems that show up when an online sto
 |---|---|
 | API | Java 17, Spring Boot 3.5, Spring Data JPA, Bean Validation |
 | Database | PostgreSQL 16 (H2 in-memory for local runs and tests) |
+| Frontend | Angular 20 (standalone components, signals, lazy routes) |
 | Docs | OpenAPI / Swagger UI |
 | Infra | Docker Compose |
 
@@ -22,6 +23,16 @@ Demo e-commerce platform focused on the problems that show up when an online sto
 cd backend
 ./mvnw spring-boot:run
 ```
+
+Then, in another terminal, the storefront (proxies `/api` to `localhost:8080`):
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Open http://localhost:4200.
 
 **Option B: full stack with Docker**
 
@@ -64,7 +75,7 @@ Seeded automatically on an empty database. **Demo only.**
 - [x] Security (JWT, roles, rate limiting, audit log)
 - [x] Orders and checkout
 - [x] AI reports (Gemini / OpenAI / mock)
-- [ ] Angular storefront
+- [x] Angular storefront
 - [ ] Admin dashboard
 - [ ] Scalability (Redis cache, load balancing, async bulk import)
 - [ ] CI and load testing
