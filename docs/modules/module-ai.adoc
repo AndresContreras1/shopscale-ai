@@ -1,0 +1,27 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.ai`
+|Spring components
+|_Controllers_
+
+* `c.g.a.AiController`
+
+_Services_
+
+* `c.g.a.AiReportService`
+
+_Configuration properties_
+
+* `c.g.a.AiProperties`
+
+_Others_
+
+* `c.g.a.AiClient`
+* `c.g.a.AiConfig`
+* `c.g.a.RuleBasedReportWriter`
+|Bean references
+|* `c.g.a.AnalyticsService` (in Analytics)
+* `c.g.c.ProductRepository` (in Catalog)
+* `c.g.a.AuditService` (in Audit)
+|===

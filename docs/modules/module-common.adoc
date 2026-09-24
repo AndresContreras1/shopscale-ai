@@ -1,0 +1,12 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.common`
+|Spring components
+|* `c.g.c.AsyncConfig`
+* `c.g.c.CacheConfig`
+* `c.g.c.ConflictRetry`
+* `c.g.c.GlobalExceptionHandler`
+* `c.g.c.InstanceHeaderFilter`
+* `c.g.c.OpenApiConfig`
+|===

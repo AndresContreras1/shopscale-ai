@@ -1,0 +1,26 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.catalog`
+|Spring components
+|_Controllers_
+
+* `c.g.c.CategoryController`
+* `c.g.c.ProductController`
+
+_Services_
+
+* `c.g.c.CategoryService`
+* `c.g.c.ProductService`
+
+_Repositories_
+
+* `c.g.c.CategoryRepository`
+* `c.g.c.ProductRepository`
+|Bean references
+|* `c.g.c.StockPort` (in Common)
+* `c.g.a.AuditService` (in Audit)
+|Aggregate roots
+|* `c.g.c.Category`
+* `c.g.c.Product`
+|===
