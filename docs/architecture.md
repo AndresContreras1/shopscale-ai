@@ -111,8 +111,10 @@ modules end up depending on each other. The catalog needed stock figures and the
 products, which is a cycle, so the catalog now talks to the `StockPort` interface in the shared
 kernel and the inventory module implements it.
 
-The same test regenerates the diagrams and the module canvases in [`modules/`](modules/), so the
-picture cannot drift from the code. `components.puml` renders with PlantUML and the C4 library.
+The diagrams and module canvases in [`modules/`](modules/) come from the same test, refreshed on
+demand with `mvn test -Dtest=ModularityTests -Dmodulith.docs=write`. They are not rewritten on every
+build: the documenter orders the relations differently each run, which turned every branch into a
+diff against every other one. `components.puml` renders with PlantUML and the C4 library.
 
 Domain events are written to `event_publication` in the same transaction as the change that produced
 them, which is what makes a failed listener replayable instead of lost.

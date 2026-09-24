@@ -1,6 +1,7 @@
 package co.gamestore.security.ratelimit;
 
 import co.gamestore.common.ProblemType;
+import co.gamestore.common.Problems;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,12 +22,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimiter rateLimiter;
     private final ObjectMapper objectMapper;
+    private final Problems problems;
     private final int apiLimit;
     private final int loginLimit;
 
-    public RateLimitFilter(RateLimiter rateLimiter, ObjectMapper objectMapper, int apiLimit, int loginLimit) {
+    public RateLimitFilter(RateLimiter rateLimiter, ObjectMapper objectMapper, Problems problems,
+                           int apiLimit, int loginLimit) {
         this.rateLimiter = rateLimiter;
         this.objectMapper = objectMapper;
+        this.problems = problems;
         this.apiLimit = apiLimit;
         this.loginLimit = loginLimit;
     }
@@ -50,7 +54,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             response.setStatus(ProblemType.RATE_LIMITED.status().value());
             response.setHeader("Retry-After", String.valueOf(WINDOW.toSeconds()));
             response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(), ProblemType.RATE_LIMITED.toProblem(
+            objectMapper.writeValue(response.getOutputStream(), problems.of(ProblemType.RATE_LIMITED,
                     "Rate limit exceeded, try again later", request.getRequestURI()));
             return;
         }

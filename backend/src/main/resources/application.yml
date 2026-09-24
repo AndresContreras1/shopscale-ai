@@ -86,6 +86,15 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  # The store's identity. Every one of these is provisional: when the brand, the domain and the
+  # mailboxes exist, they are set here or through the environment and nothing else changes.
+  brand:
+    name: ${BRAND_NAME:Game Store}
+    domain: ${BRAND_DOMAIN:gamestore.co}
+    support-email: ${BRAND_SUPPORT_EMAIL:hola@gamestore.co}
+    data-protection-email: ${BRAND_DATA_EMAIL:datos@gamestore.co}
+    # Identifies our error types. Pick it once; changing it later breaks clients that match on it.
+    problem-base-uri: ${BRAND_PROBLEM_BASE_URI:https://gamestore.co/problems}
   legal:
     # Stored with every consent, so a change of policy is visible in the ledger.
     privacy-policy-version: 2026-09
@@ -112,7 +121,8 @@ app:
     # environment that is not a laptop.
     secret-key: ${APP_SECRET_KEY:dev-only-key-change-me}
     mfa:
-      issuer: Game Store
+      # Shown in the authenticator app next to the code.
+      issuer: ${BRAND_NAME:Game Store}
     password:
       # Off in environments without outbound internet access; the length and blocklist rules still apply.
       breach-check: ${PASSWORD_BREACH_CHECK:true}

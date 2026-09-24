@@ -4,6 +4,7 @@ import co.gamestore.catalog.Category;
 import co.gamestore.catalog.CategoryRepository;
 import co.gamestore.catalog.Product;
 import co.gamestore.catalog.ProductRepository;
+import co.gamestore.common.BrandProperties;
 import co.gamestore.inventory.InventoryService;
 import co.gamestore.inventory.InventoryService.HistoricalSale;
 import co.gamestore.orders.Order;
@@ -62,6 +63,7 @@ public class DataSeeder implements ApplicationRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TransactionTemplate transactionTemplate;
+    private final BrandProperties brand;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -87,11 +89,11 @@ public class DataSeeder implements ApplicationRunner {
         }
         try {
             transactionTemplate.executeWithoutResult(status -> {
-                userRepository.save(new User("admin@gamestore.co", passwordEncoder.encode("Demo-Admin-2026!"),
+                userRepository.save(new User("admin@" + brand.domain(), passwordEncoder.encode("Demo-Admin-2026!"),
                         "Ada Admin", Role.ADMIN));
-                userRepository.save(new User("operator@gamestore.co", passwordEncoder.encode("Demo-Operator-2026!"),
+                userRepository.save(new User("operator@" + brand.domain(), passwordEncoder.encode("Demo-Operator-2026!"),
                         "Oscar Operator", Role.OPERATOR));
-                userRepository.save(new User("customer@gamestore.co", passwordEncoder.encode("Demo-Customer-2026!"),
+                userRepository.save(new User("customer@" + brand.domain(), passwordEncoder.encode("Demo-Customer-2026!"),
                         "Carla Customer", Role.CUSTOMER));
             });
         } catch (DataIntegrityViolationException ex) {

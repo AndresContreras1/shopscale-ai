@@ -3,14 +3,19 @@ package co.gamestore.security;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import co.gamestore.common.BrandProperties;
 import co.gamestore.common.ProblemException;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class PasswordPolicyTest {
 
+    private static final BrandProperties BRAND = new BrandProperties(
+            "Game Store", "gamestore.co", "hola@gamestore.co", "datos@gamestore.co",
+            "https://gamestore.co/problems");
+
     private final Set<String> breached = Set.of("correct horse battery staple");
-    private final PasswordPolicy policy = new PasswordPolicy(breached::contains);
+    private final PasswordPolicy policy = new PasswordPolicy(breached::contains, BRAND);
 
     @Test
     void rejectsSomethingTooShortToBeWorthGuessing() {

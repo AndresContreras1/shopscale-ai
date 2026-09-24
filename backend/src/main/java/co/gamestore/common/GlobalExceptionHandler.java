@@ -22,40 +22,46 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private final Problems problems;
+
+    public GlobalExceptionHandler(Problems problems) {
+        this.problems = problems;
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ProblemDetail notFound(NotFoundException ex, HttpServletRequest req) {
-        return ProblemType.NOT_FOUND.toProblem(ex.getMessage(), req.getRequestURI());
+        return problems.of(ProblemType.NOT_FOUND, ex.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(ProblemException.class)
     public ProblemDetail problem(ProblemException ex, HttpServletRequest req) {
-        return ex.type().toProblem(ex.getMessage(), req.getRequestURI());
+        return problems.of(ex.type(), ex.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(BusinessException.class)
     public ProblemDetail business(BusinessException ex, HttpServletRequest req) {
-        return ProblemType.BUSINESS_RULE.toProblem(ex.getMessage(), req.getRequestURI());
+        return problems.of(ProblemType.BUSINESS_RULE, ex.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ProblemDetail concurrentUpdate(ObjectOptimisticLockingFailureException ex, HttpServletRequest req) {
-        return ProblemType.CONCURRENT_UPDATE.toProblem(
+        return problems.of(ProblemType.CONCURRENT_UPDATE,
                 "The resource was modified by another request, please retry", req.getRequestURI());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ProblemDetail unauthenticated(AuthenticationException ex, HttpServletRequest req) {
-        return ProblemType.UNAUTHENTICATED.toProblem(ex.getMessage(), req.getRequestURI());
+        return problems.of(ProblemType.UNAUTHENTICATED, ex.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail forbidden(AccessDeniedException ex, HttpServletRequest req) {
-        return ProblemType.FORBIDDEN.toProblem(null, req.getRequestURI());
+        return problems.of(ProblemType.FORBIDDEN, null, req.getRequestURI());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail badRequest(IllegalArgumentException ex, HttpServletRequest req) {
-        return ProblemType.BAD_REQUEST.toProblem(ex.getMessage(), req.getRequestURI());
+        return problems.of(ProblemType.BAD_REQUEST, ex.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -63,7 +69,7 @@ public class GlobalExceptionHandler {
         Map<String, String> fields = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors()
                 .forEach(fe -> fields.putIfAbsent(fe.getField(), fe.getDefaultMessage()));
-        ProblemDetail problem = ProblemType.VALIDATION_FAILED.toProblem(null, req.getRequestURI());
+        ProblemDetail problem = problems.of(ProblemType.VALIDATION_FAILED, null, req.getRequestURI());
         problem.setProperty("fieldErrors", fields);
         return problem;
     }
@@ -71,6 +77,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ProblemDetail unexpected(Exception ex, HttpServletRequest req) {
         log.error("Unexpected error on {}", req.getRequestURI(), ex);
-        return ProblemType.INTERNAL.toProblem(null, req.getRequestURI());
+        return problems.of(ProblemType.INTERNAL, null, req.getRequestURI());
     }
 }

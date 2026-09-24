@@ -1,6 +1,7 @@
 package co.gamestore.security;
 
 import co.gamestore.common.ProblemType;
+import co.gamestore.common.Problems;
 import co.gamestore.security.ratelimit.RateLimitFilter;
 import co.gamestore.security.ratelimit.RateLimiter;
 import jakarta.servlet.http.HttpServletResponse;
@@ -38,11 +39,11 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimiter rateLimiter,
-                                                   ObjectMapper objectMapper,
+                                                   ObjectMapper objectMapper, Problems problems,
                                                    @Value("${app.security.rate-limit.api-per-minute:300}") int apiLimit,
                                                    @Value("${app.security.rate-limit.login-per-minute:10}") int loginLimit)
             throws Exception {
-        var rateLimitFilter = new RateLimitFilter(rateLimiter, objectMapper, apiLimit, loginLimit);
+        var rateLimitFilter = new RateLimitFilter(rateLimiter, objectMapper, problems, apiLimit, loginLimit);
 
         http
                 .headers(SecurityConfig::hardenHeaders)
@@ -73,10 +74,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) ->
-                                writeProblem(res, objectMapper, ProblemType.UNAUTHENTICATED,
+                                writeProblem(res, objectMapper, problems, ProblemType.UNAUTHENTICATED,
                                         "Authentication required", req.getRequestURI()))
                         .accessDeniedHandler((req, res, e) ->
-                                writeProblem(res, objectMapper, ProblemType.FORBIDDEN, null, req.getRequestURI())))
+                                writeProblem(res, objectMapper, problems, ProblemType.FORBIDDEN, null, req.getRequestURI())))
                 .logout(logout -> logout
                         // Spring Security invalidates the session and clears the context; the browser
                         // keeps a cookie that no longer resolves to anything.
@@ -169,10 +170,10 @@ public class SecurityConfig {
      * The filter chain rejects a request before any controller runs, so the RFC 9457 body is written
      * here by hand. Same shape as every other error, otherwise clients need two parsers.
      */
-    private static void writeProblem(HttpServletResponse res, ObjectMapper mapper, ProblemType type,
-                                     String detail, String path) throws IOException {
+    private static void writeProblem(HttpServletResponse res, ObjectMapper mapper, Problems problems,
+                                     ProblemType type, String detail, String path) throws IOException {
         res.setStatus(type.status().value());
         res.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-        mapper.writeValue(res.getOutputStream(), type.toProblem(detail, path));
+        mapper.writeValue(res.getOutputStream(), problems.of(type, detail, path));
     }
 }

@@ -1,5 +1,6 @@
 package co.gamestore.security;
 
+import co.gamestore.common.BrandProperties;
 import co.gamestore.common.ProblemException;
 import co.gamestore.common.ProblemType;
 import java.text.Normalizer;
@@ -7,7 +8,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
  * writing the result down. Length and a check against known breaches do the work instead.
  */
 @Component
-@RequiredArgsConstructor
 public class PasswordPolicy {
 
     /** The guideline requires at least 8 and recommends 15; 12 is where usability and strength meet. */
@@ -29,10 +28,21 @@ public class PasswordPolicy {
     public static final int MAX_LENGTH = 72;
 
     /** Words from this store's own context, which a breach corpus does not know are weak here. */
-    private static final Set<String> CONTEXT_WORDS =
-            Set.of("gamestore", "game store", "consola", "console", "playstation", "xbox", "nintendo");
+    private static final Set<String> PRODUCT_WORDS =
+            Set.of("consola", "console", "playstation", "xbox", "nintendo");
 
     private final BreachedPasswordChecker breachedPasswords;
+    private final Set<String> contextWords;
+
+    public PasswordPolicy(BreachedPasswordChecker breachedPasswords, BrandProperties brand) {
+        this.breachedPasswords = breachedPasswords;
+        // The store's own name counts as a weak word here, whatever the name turns out to be.
+        Set<String> words = new java.util.HashSet<>(PRODUCT_WORDS);
+        words.add(normalize(brand.name()));
+        words.add(normalize(brand.name()).replace(" ", ""));
+        words.add(normalize(brand.domain()));
+        this.contextWords = Set.copyOf(words);
+    }
 
     /**
      * @throws ProblemException with a message the user can act on, and nothing else. The message
@@ -63,12 +73,17 @@ public class PasswordPolicy {
         return null;
     }
 
-    private static String contextProblem(String password) {
-        String normalized = Normalizer.normalize(password, Normalizer.Form.NFKD)
+    private String contextProblem(String password) {
+        String normalized = normalize(password);
+        boolean namesTheStore = contextWords.stream().anyMatch(normalized::contains);
+        return namesTheStore ? "The password cannot be built from the name of the store or its products" : null;
+    }
+
+    /** Strips accents and case, so "Cónsola" is caught by the same rule as "consola". */
+    private static String normalize(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFKD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase(Locale.ROOT);
-        boolean namesTheStore = CONTEXT_WORDS.stream().anyMatch(normalized::contains);
-        return namesTheStore ? "The password cannot be built from the name of the store or its products" : null;
     }
 
     private String breachProblem(String password) {

@@ -39,7 +39,7 @@ is in [demo-guide.md](demo-guide.md).
 |---|---|
 | API | Java 25 LTS (virtual threads on), Spring Boot 4.1, Spring Data JPA, Spring Security 7, Bean Validation |
 | Database | PostgreSQL 16, schema owned by Flyway migrations, also in tests through Testcontainers |
-| Cache / shared state | Redis (Caffeine in memory for local runs) |
+| Sessions, cache, rate limits | Redis, shared by every replica |
 | Frontend | Angular 20 (standalone components, signals, lazy routes) |
 | AI | Google Gemini or OpenAI over REST, rule-based fallback |
 | Infra | Docker Compose, Nginx, GitHub Actions, k6 |
@@ -57,27 +57,71 @@ docker compose up --build
 - Swagger UI: http://localhost:8088/swagger-ui/index.html
 - Scale out: `docker compose up -d --scale api=4`
 
-**Option B: local API against a PostgreSQL container.** The schema comes from the Flyway migrations
-(see [migrations](migrations.md)), so a database is required. Needs a JDK 25; with an older JDK
-installed, build inside a container instead:
-`docker run --rm -v "$PWD/backend":/app -w /app maven:3.9-eclipse-temurin-25 mvn test`
+The demo accounts are on the sign-in page, one click each:
+
+| Role | Email | Password |
+|---|---|---|
+| Administrator | admin@gamestore.co | Demo-Admin-2026! |
+| Warehouse operator | operator@gamestore.co | Demo-Operator-2026! |
+| Customer | customer@gamestore.co | Demo-Customer-2026! |
+
+The addresses follow `BRAND_DOMAIN`, so they change with the domain.
+
+**Option B: API outside Docker.** The schema belongs to the Flyway migrations and the session lives in
+Redis, so both containers are required even when the API runs locally.
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres redis
 ```
+
+The API needs a JDK 25. With an older one installed, build and run it in a container:
 
 ```bash
-cd backend
-./mvnw spring-boot:run
+docker run --rm -v "$PWD/backend":/app -w /app maven:3.9-eclipse-temurin-25 mvn test
 ```
+
+The Angular dev server proxies `/api` to `localhost:8080`:
 
 ```bash
-cd frontend
-npm install
-npm start
+cd frontend && npm install && npm start
 ```
 
-Open http://localhost:4200 (the dev server proxies `/api` to `localhost:8080`).
+## Check that it works
+
+Everything below is visible in the browser at http://localhost:8088.
+
+| What to try | What should happen |
+|---|---|
+| Sign in as the customer, add products, check out | The order appears under the account and the stock drops |
+| Open the developer tools, application, cookies | A session cookie marked HttpOnly, plus a readable `XSRF-TOKEN`. There is no token in local storage |
+| Back office, flash sale simulator, 200 buyers for 8 units | Exactly 8 orders and 192 polite rejections, no oversell |
+| Back office, AI report | A report in seconds, from figures the code computed, not invented by the model |
+| The footer on any page | The replica that answered. Reload and it changes as the load balancer rotates |
+| `docker compose up -d --scale api=4` | The footer starts showing four different replicas; sessions keep working because they live in Redis |
+| Swagger UI at `/swagger-ui/index.html` | Every endpoint, with the session cookie as the security scheme |
+
+From a terminal, the parts that are easier to see as requests:
+
+```bash
+curl -i http://localhost:8088/api/products | head -20
+```
+
+The response headers carry the content security policy, `nosniff`, the referrer policy and
+`Cache-Control: no-store`, and set the `XSRF-TOKEN` cookie.
+
+```bash
+curl -i -X POST http://localhost:8088/api/auth/login -H "Content-Type: application/json" -d "{\"email\":\"customer@gamestore.co\",\"password\":\"Demo-Customer-2026!\"}"
+```
+
+That one is refused with 403: a state-changing request without the CSRF header is exactly what the
+protection is for. The browser sends the header by itself, which is why signing in on the page works.
+
+The whole backend test suite, including the migrations and the security checks, runs against real
+PostgreSQL and Redis containers:
+
+```bash
+docker run --rm -v "$PWD/backend":/app -v gamestore_m2:/root/.m2 -v /var/run/docker.sock:/var/run/docker.sock -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal --add-host=host.docker.internal:host-gateway -w /app maven:3.9-eclipse-temurin-25 mvn -B verify
+```
 
 Demo data (40 products, 60 days of sales history, three users) is created automatically on an empty
 database.

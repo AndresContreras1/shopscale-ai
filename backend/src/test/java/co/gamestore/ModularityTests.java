@@ -1,6 +1,7 @@
 package co.gamestore;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;
 
@@ -18,7 +19,16 @@ class ModularityTests {
         MODULES.verify();
     }
 
+    /**
+     * Refreshing the diagrams is deliberate, not automatic: the documenter writes the relations in a
+     * different order on every run, so regenerating them during an ordinary build produced a diff on
+     * every branch and add/add conflicts whenever two of them were merged.
+     *
+     * <p>Run it after changing the modules:
+     * {@code mvn test -Dtest=ModularityTests -Dmodulith.docs=write}
+     */
     @Test
+    @EnabledIfSystemProperty(named = "modulith.docs", matches = "write")
     void writesModuleDocumentation() {
         new Documenter(MODULES, Documenter.Options.defaults().withOutputFolder("../docs/modules"))
                 .writeModulesAsPlantUml()

@@ -1,8 +1,6 @@
 package co.gamestore.common;
 
-import java.net.URI;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 
 /**
  * The catalog of errors this API can return, as RFC 9457 problem types.
@@ -26,9 +24,6 @@ public enum ProblemType {
     RATE_LIMITED("rate-limited", "Too many requests", HttpStatus.TOO_MANY_REQUESTS),
     INTERNAL("internal-error", "Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
 
-    /** Resolvable documentation base. Nothing depends on it being reachable, but it identifies us. */
-    private static final String BASE = "https://gamestore.co/problems/";
-
     private final String code;
     private final String title;
     private final HttpStatus status;
@@ -43,22 +38,13 @@ public enum ProblemType {
         return code;
     }
 
+    public String title() {
+        return title;
+    }
+
     public HttpStatus status() {
         return status;
     }
 
-    public URI uri() {
-        return URI.create(BASE + code);
-    }
 
-    public ProblemDetail toProblem(String detail, String instance) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail == null ? title : detail);
-        problem.setType(uri());
-        problem.setTitle(title);
-        problem.setProperty("code", code);
-        if (instance != null) {
-            problem.setInstance(URI.create(instance));
-        }
-        return problem;
-    }
 }

@@ -12,14 +12,20 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI gameStoreOpenApi() {
+    public OpenAPI gameStoreOpenApi(
+            BrandProperties brand,
+            @org.springframework.beans.factory.annotation.Value(
+                    "${server.servlet.session.cookie.name:__Host-SID}") String sessionCookieName) {
         return new OpenAPI()
-                .components(new Components().addSecuritySchemes("bearer",
-                        new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")))
-                .addSecurityItem(new SecurityRequirement().addList("bearer"))
+                // Authentication is a session cookie, not a bearer token: sign in through
+                // /api/auth/login and the browser carries it from there.
+                .components(new Components().addSecuritySchemes("session",
+                        new SecurityScheme().type(SecurityScheme.Type.APIKEY)
+                                .in(SecurityScheme.In.COOKIE).name(sessionCookieName)))
+                .addSecurityItem(new SecurityRequirement().addList("session"))
                 .info(new Info()
-                .title("Game Store API")
+                .title(brand.name() + " API")
                 .version("0.1.0")
-                .description("Scalable e-commerce backend: catalog, inventory, orders and AI reports"));
+                .description("Console store and repair workshop: catalog, inventory, orders and AI reports"));
     }
 }
