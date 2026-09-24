@@ -38,7 +38,7 @@ is in [demo-guide.md](demo-guide.md).
 | Layer | Technology |
 |---|---|
 | API | Java 25 LTS (virtual threads on), Spring Boot 4.1, Spring Data JPA, Spring Security 7, Bean Validation |
-| Database | PostgreSQL 16 (H2 in-memory for local runs and tests) |
+| Database | PostgreSQL 16, schema owned by Flyway migrations (H2 in-memory for tests) |
 | Cache / shared state | Redis (Caffeine in memory for local runs) |
 | Frontend | Angular 20 (standalone components, signals, lazy routes) |
 | AI | Google Gemini or OpenAI over REST, rule-based fallback |
@@ -57,9 +57,14 @@ docker compose up --build
 - Swagger UI: http://localhost:8088/swagger-ui/index.html
 - Scale out: `docker compose up -d --scale api=4`
 
-**Option B: local, no dependencies** (H2 in-memory, in-process cache). Needs a JDK 25; with an older
-JDK installed, build inside a container instead:
+**Option B: local API against a PostgreSQL container.** The schema comes from the Flyway migrations
+(see [migrations](migrations.md)), so a database is required. Needs a JDK 25; with an older JDK
+installed, build inside a container instead:
 `docker run --rm -v "$PWD/backend":/app -w /app maven:3.9-eclipse-temurin-25 mvn test`
+
+```bash
+docker compose up -d postgres
+```
 
 ```bash
 cd backend

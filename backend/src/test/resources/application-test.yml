@@ -1,0 +1,13 @@
+# Tests still run on in-memory H2 in PostgreSQL mode, so Hibernate creates the schema here and
+# Flyway stays off. The next PR (chore/testcontainers-ci) replaces this with a real PostgreSQL
+# container, which is the only way the migrations themselves get tested.
+spring:
+  datasource:
+    url: jdbc:h2:mem:gamestore;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
