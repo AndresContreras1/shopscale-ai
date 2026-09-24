@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { CartLine, Product } from './models';
 
-const STORAGE_KEY = 'shopscale.cart';
+const STORAGE_KEY = 'gamestore.cart';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {

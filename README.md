@@ -1,9 +1,12 @@
-# ShopScale AI
+# Game Store
+
+> Working name, subject to change. The roadmap from this demo to the real store is in
+> [docs/master-plan.md](docs/master-plan.md).
 
 **An online store that keeps working when sales grow, never sells what it does not have, and tells
 management what to do next.**
 
-ShopScale is a working demo of the systems behind an e-commerce business: the storefront customers
+Game Store is a working demo of the systems behind an e-commerce business: the storefront customers
 see, the back office the team uses every day, and the engine that keeps both reliable under
 pressure. It was built to show how technology can protect revenue, reduce manual work and turn
 sales data into decisions.
@@ -12,7 +15,7 @@ sales data into decisions.
 
 ## The problems it solves
 
-| When an online store grows... | What ShopScale does |
+| When an online store grows... | What Game Store does |
 |---|---|
 | Two customers buy the last unit at the same time and one order cannot be delivered | Stock is reserved at checkout in a way that makes overselling impossible. Tested with 200 simultaneous buyers for 8 units: exactly 8 orders, zero oversold. |
 | Nobody can explain why the system says 12 units and the warehouse counts 9 | Every unit that enters, is reserved or leaves is recorded with who did it and when. Stock can always be traced. |

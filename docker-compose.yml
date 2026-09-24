@@ -6,9 +6,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-shopscale}
-      POSTGRES_USER: ${POSTGRES_USER:-shopscale}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shopscale}
+      POSTGRES_DB: ${POSTGRES_DB:-gamestore}
+      POSTGRES_USER: ${POSTGRES_USER:-gamestore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gamestore}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -31,9 +31,9 @@ services:
     deploy:
       replicas: 2
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-shopscale}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-shopscale}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-shopscale}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-gamestore}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-gamestore}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-gamestore}
       # Shared state lives outside the API, so any replica can serve any request.
       CACHE_TYPE: redis
       REDIS_HOST: redis
