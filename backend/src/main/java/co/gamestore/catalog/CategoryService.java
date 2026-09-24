@@ -1,0 +1,37 @@
+package co.gamestore.catalog;
+
+import co.gamestore.catalog.dto.CategoryRequest;
+import co.gamestore.catalog.dto.CategoryResponse;
+import co.gamestore.common.BusinessException;
+import co.gamestore.common.CacheConfig;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class CategoryService {
+
+    private final CategoryRepository categoryRepository;
+
+    @Cacheable(CacheConfig.CATEGORIES)
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> findAll() {
+        return categoryRepository.findAll(Sort.by("name")).stream().map(CategoryResponse::from).toList();
+    }
+
+    @CacheEvict(cacheNames = CacheConfig.CATEGORIES, allEntries = true)
+    @Transactional
+    public CategoryResponse create(CategoryRequest request) {
+        if (categoryRepository.existsBySlug(request.slug())) {
+            throw new BusinessException("Category slug already exists: " + request.slug());
+        }
+        Category saved = categoryRepository.save(
+                new Category(request.name(), request.slug(), request.description()));
+        return CategoryResponse.from(saved);
+    }
+}

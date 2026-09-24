@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { AuthResponse, Role, User } from './models';
 
-const STORAGE_KEY = 'shopscale.session';
+const STORAGE_KEY = 'gamestore.session';
 
 interface Session {
   token: string;

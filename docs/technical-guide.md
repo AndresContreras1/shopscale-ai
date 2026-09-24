@@ -1,4 +1,4 @@
-# ShopScale AI: technical guide
+# Game Store: technical guide
 
 Demo e-commerce platform focused on the problems that appear when an online store grows:
 **product and inventory management, security, horizontal scalability and AI-assisted reporting.**
@@ -81,9 +81,9 @@ database.
 
 | Role | Email | Password | Can do |
 |---|---|---|---|
-| ADMIN | admin@shopscale.dev | Admin123! | Everything: catalog, prices, inventory, reports, audit |
-| OPERATOR | operator@shopscale.dev | Operator123! | Inventory only |
-| CUSTOMER | customer@shopscale.dev | Customer123! | Storefront and own orders |
+| ADMIN | admin@gamestore.co | Admin123! | Everything: catalog, prices, inventory, reports, audit |
+| OPERATOR | operator@gamestore.co | Operator123! | Inventory only |
+| CUSTOMER | customer@gamestore.co | Customer123! | Storefront and own orders |
 
 ## AI reports
 

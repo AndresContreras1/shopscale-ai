@@ -46,7 +46,7 @@ export const options = {
 
 export function setup() {
   const res = http.post(`${BASE_URL}/api/auth/login`,
-    JSON.stringify({ email: 'customer@shopscale.dev', password: 'Customer123!' }),
+    JSON.stringify({ email: 'customer@gamestore.co', password: 'Customer123!' }),
     { headers: { 'Content-Type': 'application/json' } });
   check(res, { 'logged in': (r) => r.status === 200 });
   return { token: res.json('token') };

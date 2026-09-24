@@ -10,11 +10,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.shopscale</groupId>
+    <groupId>co.gamestore</groupId>
     <artifactId>backend</artifactId>
     <version>0.1.0</version>
-    <name>shopscale-backend</name>
-    <description>ShopScale AI - scalable e-commerce API</description>
+    <name>gamestore-backend</name>
+    <description>Game Store - console store and repair workshop API</description>
 
     <properties>
         <java.version>17</java.version>
