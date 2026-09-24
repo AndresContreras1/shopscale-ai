@@ -44,6 +44,14 @@ services:
       DB_POOL_SIZE: 10
       # Plain HTTP on localhost: browsers still accept a Secure cookie there, but the
       # __Host- prefix is dropped so the demo works behind any local port.
+      # Identity, all provisional. Set them in .env and the container picks them up.
+      BRAND_NAME: ${BRAND_NAME:-Game Store}
+      BRAND_DOMAIN: ${BRAND_DOMAIN:-gamestore.co}
+      BRAND_SUPPORT_EMAIL: ${BRAND_SUPPORT_EMAIL:-hola@gamestore.co}
+      BRAND_DATA_EMAIL: ${BRAND_DATA_EMAIL:-datos@gamestore.co}
+      BRAND_PROBLEM_BASE_URI: ${BRAND_PROBLEM_BASE_URI:-https://gamestore.co/problems}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8088}
+      APP_SECRET_KEY: ${APP_SECRET_KEY:-dev-only-key-change-me}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-SID}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       CORS_ALLOWED_ORIGINS: http://localhost:8088
