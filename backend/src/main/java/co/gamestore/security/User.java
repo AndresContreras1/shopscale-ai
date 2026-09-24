@@ -55,6 +55,9 @@ public class User {
 
     private Instant totpEnrolledAt;
 
+    /** Set when the person exercised their right to deletion; the row stays, the person does not. */
+    private Instant anonymizedAt;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -93,6 +96,17 @@ public class User {
         this.totpSecret = null;
         this.totpEnabled = false;
         this.totpEnrolledAt = null;
+    }
+
+    void anonymize(String pseudonym, Instant when) {
+        this.email = pseudonym;
+        this.fullName = "Deleted account";
+        this.passwordHash = "{noop}";
+        this.enabled = false;
+        this.emailVerified = false;
+        this.totpSecret = null;
+        this.totpEnabled = false;
+        this.anonymizedAt = when;
     }
 
     /** Staff reach prices, stock and customer data, so their accounts carry the second factor. */

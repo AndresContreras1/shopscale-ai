@@ -82,6 +82,10 @@ Stock is never cached. In Docker the cache is Redis, shared by every replica.
   allows nothing at all; only the documentation gets a looser one, from its own filter chain.
 - The back office answers on its own host name and only from an allow-list of addresses. Anyone else
   gets 404, which reveals less than 403.
+- Consent is a ledger, not a column: every decision is a row with the moment, the channel and the
+  policy version, so it can be proved. Customers can download everything held about them and delete
+  their account, which anonymises the records the law says must be kept. See
+  [the legal folder](legal/).
 - Audit log for sensitive actions; failed logins are recorded even though the request fails.
 - Validation on every input, uniform error body, no stack traces in responses.
 

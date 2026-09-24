@@ -31,6 +31,7 @@ public class AuthService {
     private final AuthTokenService authTokens;
     private final AccountMessenger messenger;
     private final FindByIndexNameSessionRepository<?> sessions;
+    private final ConsentService consents;
 
     private static final Duration VERIFICATION_VALIDITY = Duration.ofHours(24);
 
@@ -75,6 +76,9 @@ public class AuthService {
         User user = userRepository.save(new User(request.email().toLowerCase(),
                 passwordEncoder.encode(request.password()), request.fullName(), Role.CUSTOMER));
         auditService.record(user.getEmail(), "REGISTER", "User", user.getId(), null);
+        // Prior, informed and specific: registering accepts the handling of the account and its
+        // orders, and nothing else. Marketing is asked for separately, later, and can be refused.
+        consents.record(user, ConsentPurpose.DATA_PROCESSING, true, "registration", null, null);
         messenger.sendEmailVerification(user, authTokens.issue(user, AuthTokenPurpose.EMAIL_VERIFICATION,
                 VERIFICATION_VALIDITY));
         return user;

@@ -114,6 +114,7 @@ The full technical documentation is in the [`docs`](docs) folder:
 - [Technical guide](docs/technical-guide.md): stack, how to run it, tests and load test results
 - [Architecture and design decisions](docs/architecture.md)
 - [Demo guide](docs/demo-guide.md)
+- [Legal texts and data rights](docs/legal/): the privacy policy and what the code already enforces
 - [Master plan](docs/master-plan.md): the roadmap from this demo to a real console store with a repair workshop, backed by the [research reports](docs/research/)
 
 Built with Java and Spring Boot, Angular, PostgreSQL, Redis, Nginx and Docker, with AI reports
