@@ -35,4 +35,29 @@ public final class AuthDtos {
 
     public record PasswordResetRequest(@NotBlank String token, @NotBlank String password) {
     }
+
+    public record CodeRequest(@NotBlank String code) {
+    }
+
+    /**
+     * What the sign-in produced. Either the session is open and the user is here, or the account holds
+     * a second factor and the browser must come back with a code.
+     */
+    public record LoginResult(boolean mfaRequired, boolean mfaEnrolmentRequired, UserResponse user) {
+
+        static LoginResult pendingSecondFactor() {
+            return new LoginResult(true, false, null);
+        }
+
+        static LoginResult signedIn(User user) {
+            return new LoginResult(false, user.requiresSecondFactor() && !user.isTotpEnabled(),
+                    UserResponse.from(user));
+        }
+    }
+
+    public record MfaEnrolmentResponse(String secret, String provisioningUri) {
+    }
+
+    public record RecoveryCodesResponse(java.util.List<String> recoveryCodes) {
+    }
 }

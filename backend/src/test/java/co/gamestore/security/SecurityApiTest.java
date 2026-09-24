@@ -139,15 +139,22 @@ class SecurityApiTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /**
+     * The per-address limit, tested with a different account each time so the per-account limit is not
+     * what stops it. This is the attacker who sprays one password across many accounts.
+     */
     @Test
-    void blocksLoginBruteForce() throws Exception {
-        String body = "{\"email\":\"admin@gamestore.co\",\"password\":\"guess\"}";
-        for (int i = 0; i < 10; i++) {
+    void blocksLoginBruteForceFromOneAddress() throws Exception {
+        for (int attempt = 0; attempt < 10; attempt++) {
             mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", "10.9.9.9")
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"spray-%d@gamestore.co\",\"password\":\"guess me please\"}"
+                            .formatted(attempt)));
         }
+
         mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", "10.9.9.9")
-                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"spray-last@gamestore.co\",\"password\":\"guess me please\"}"))
                 .andExpect(status().isTooManyRequests());
     }
 
@@ -156,7 +163,7 @@ class SecurityApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.user.email").value(email))
                 .andReturn().getResponse().getCookies();
     }
 

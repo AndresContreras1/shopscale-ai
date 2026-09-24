@@ -46,6 +46,15 @@ public class User {
 
     private Instant emailVerifiedAt;
 
+    /** Base32 shared secret for the authenticator app; present from enrolment, active once proved. */
+    @Column(length = 255)
+    private String totpSecret;
+
+    @Column(nullable = false)
+    private boolean totpEnabled;
+
+    private Instant totpEnrolledAt;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -68,5 +77,26 @@ public class User {
 
     void changePassword(String newPasswordHash) {
         this.passwordHash = newPasswordHash;
+    }
+
+    void startTotpEnrolment(String secret) {
+        this.totpSecret = secret;
+        this.totpEnabled = false;
+    }
+
+    void enableTotp(Instant when) {
+        this.totpEnabled = true;
+        this.totpEnrolledAt = when;
+    }
+
+    void disableTotp() {
+        this.totpSecret = null;
+        this.totpEnabled = false;
+        this.totpEnrolledAt = null;
+    }
+
+    /** Staff reach prices, stock and customer data, so their accounts carry the second factor. */
+    public boolean requiresSecondFactor() {
+        return role == Role.ADMIN || role == Role.OPERATOR;
     }
 }

@@ -105,6 +105,11 @@ app:
       model: ${OPENAI_MODEL:gpt-4o-mini}
       base-url: https://api.openai.com
   security:
+    # Encrypts values that must be read back, such as the TOTP shared secret. Set it in every
+    # environment that is not a laptop.
+    secret-key: ${APP_SECRET_KEY:dev-only-key-change-me}
+    mfa:
+      issuer: Game Store
     password:
       # Off in environments without outbound internet access; the length and blocklist rules still apply.
       breach-check: ${PASSWORD_BREACH_CHECK:true}

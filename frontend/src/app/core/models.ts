@@ -8,6 +8,12 @@ export interface Page<T> {
   totalPages: number;
 }
 
+export interface LoginResult {
+  mfaRequired: boolean;
+  mfaEnrolmentRequired: boolean;
+  user: User | null;
+}
+
 /** RFC 9457 problem document. `code` and `fieldErrors` are our extension members. */
 export interface ProblemDetail {
   type?: string;

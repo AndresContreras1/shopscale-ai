@@ -18,6 +18,7 @@ public enum ProblemType {
     PASSWORD_REJECTED("password-rejected", "Password rejected", HttpStatus.BAD_REQUEST),
     TOKEN_INVALID("token-invalid", "Link no longer valid", HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED("unauthenticated", "Authentication required", HttpStatus.UNAUTHORIZED),
+    MFA_REQUIRED("mfa-required", "Second factor required", HttpStatus.UNAUTHORIZED),
     FORBIDDEN("forbidden", "Insufficient permissions", HttpStatus.FORBIDDEN),
     NOT_FOUND("not-found", "Resource not found", HttpStatus.NOT_FOUND),
     BUSINESS_RULE("business-rule", "Business rule violated", HttpStatus.CONFLICT),
