@@ -17,3 +17,6 @@ frontend/.angular/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Generated test data
+/products.csv
