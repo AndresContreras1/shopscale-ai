@@ -1,0 +1,28 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.orders`
+|Spring components
+|_Controllers_
+
+* `c.g.o.OrderController`
+
+_Services_
+
+* `c.g.o.OrderService`
+
+_Repositories_
+
+* `c.g.o.OrderRepository`
+
+_Others_
+
+* `c.g.o.ReservationExpiryJob`
+|Bean references
+|* `c.g.c.ConflictRetry` (in Common)
+* `c.g.c.ProductRepository` (in Catalog)
+* `c.g.i.InventoryService` (in Inventory)
+* `c.g.a.AuditService` (in Audit)
+|Aggregate roots
+|* `c.g.o.Order`
+|===

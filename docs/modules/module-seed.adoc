@@ -1,0 +1,13 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.seed`
+|Spring components
+|* `c.g.s.DataSeeder`
+|Bean references
+|* `c.g.c.CategoryRepository` (in Catalog)
+* `c.g.c.ProductRepository` (in Catalog)
+* `c.g.i.InventoryService` (in Inventory)
+* `c.g.o.OrderRepository` (in Orders)
+* `c.g.s.UserRepository` (in Security)
+|===

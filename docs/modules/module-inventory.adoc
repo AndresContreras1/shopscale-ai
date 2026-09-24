@@ -1,0 +1,25 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.inventory`
+|Spring components
+|_Controllers_
+
+* `c.g.i.InventoryController`
+
+_Services_
+
+* `c.g.i.FlashSaleSimulator`
+* `c.g.i.InventoryService`
+
+_Repositories_
+
+* `c.g.i.InventoryRepository`
+* `c.g.i.StockMovementRepository`
+|Bean references
+|* `c.g.c.ConflictRetry` (in Common)
+* `c.g.a.AuditService` (in Audit)
+|Aggregate roots
+|* `c.g.i.InventoryItem`
+* `c.g.i.StockMovement`
+|===

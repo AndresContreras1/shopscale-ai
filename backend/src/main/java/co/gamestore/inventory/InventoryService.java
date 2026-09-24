@@ -6,6 +6,7 @@ import co.gamestore.common.BusinessException;
 import co.gamestore.common.CurrentActor;
 import co.gamestore.common.NotFoundException;
 import co.gamestore.common.PageResponse;
+import co.gamestore.common.StockPort;
 import co.gamestore.inventory.dto.InventoryResponse;
 import co.gamestore.inventory.dto.MovementResponse;
 import jakarta.persistence.EntityManager;
@@ -25,12 +26,22 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class InventoryService {
+public class InventoryService implements StockPort {
 
     private final InventoryRepository inventoryRepository;
     private final StockMovementRepository movementRepository;
     private final EntityManager entityManager;
     private final AuditService auditService;
+
+    /**
+     * Entry point for the catalog through {@link StockPort}: it only knows the product id, and a
+     * reference is enough because the product row was written in the same transaction.
+     */
+    @Override
+    @Transactional
+    public void provision(Long productId, int onHand, int reorderPoint) {
+        initialize(entityManager.getReference(Product.class, productId), onHand, reorderPoint);
+    }
 
     @Transactional
     public InventoryItem initialize(Product product, int onHand, int reorderPoint) {
@@ -141,6 +152,7 @@ public class InventoryService {
 
     /** Available units per product id, resolved with a single query for a whole page of products. */
     @Transactional(readOnly = true)
+    @Override
     public Map<Long, Integer> availableFor(Collection<Long> productIds) {
         if (productIds.isEmpty()) {
             return Map.of();

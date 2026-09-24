@@ -12,7 +12,7 @@ import co.gamestore.catalog.dto.ProductResponse;
 import co.gamestore.common.BusinessException;
 import co.gamestore.common.NotFoundException;
 import co.gamestore.common.PageResponse;
-import co.gamestore.inventory.InventoryService;
+import co.gamestore.common.StockPort;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-    private final InventoryService inventoryService;
+    private final StockPort stock;
     private final AuditService auditService;
 
     private static final int DEFAULT_REORDER_POINT = 10;
@@ -40,8 +40,8 @@ public class ProductService {
                 priceBetween(filter.minPrice(), filter.maxPrice()),
                 hasStatus(filter.status()));
         var page = productRepository.findAll(spec, pageable);
-        Map<Long, Integer> stock = inventoryService.availableFor(page.map(Product::getId).getContent());
-        return PageResponse.from(page.map(p -> ProductResponse.from(p, stock.get(p.getId()))));
+        Map<Long, Integer> available = stock.availableFor(page.map(Product::getId).getContent());
+        return PageResponse.from(page.map(p -> ProductResponse.from(p, available.get(p.getId()))));
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +63,7 @@ public class ProductService {
         Product product = new Product();
         apply(product, request);
         productRepository.save(product);
-        inventoryService.initialize(product,
+        stock.provision(product.getId(),
                 request.initialStock() == null ? 0 : request.initialStock(),
                 request.reorderPoint() == null ? DEFAULT_REORDER_POINT : request.reorderPoint());
         auditService.record("PRODUCT_CREATED", "Product", product.getId(), product.getSku() + " at " + product.getPrice());
@@ -94,7 +94,7 @@ public class ProductService {
     }
 
     private ProductResponse toResponse(Product product) {
-        return ProductResponse.from(product, inventoryService.availableFor(List.of(product.getId()))
+        return ProductResponse.from(product, stock.availableFor(List.of(product.getId()))
                 .get(product.getId()));
     }
 

@@ -7,7 +7,7 @@ import co.gamestore.catalog.Product;
 import co.gamestore.catalog.ProductRepository;
 import co.gamestore.common.CurrentActor;
 import co.gamestore.common.NotFoundException;
-import co.gamestore.inventory.InventoryService;
+import co.gamestore.common.StockPort;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -50,19 +50,19 @@ public class ProductImportService {
     private final ImportJobRepository jobRepository;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-    private final InventoryService inventoryService;
+    private final StockPort stock;
     private final AuditService auditService;
     private final TransactionTemplate tx;
     private final TaskExecutor executor;
 
     public ProductImportService(ImportJobRepository jobRepository, ProductRepository productRepository,
-                                CategoryRepository categoryRepository, InventoryService inventoryService,
+                                CategoryRepository categoryRepository, StockPort stock,
                                 AuditService auditService, PlatformTransactionManager transactionManager,
                                 @Qualifier("importExecutor") TaskExecutor executor) {
         this.jobRepository = jobRepository;
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
-        this.inventoryService = inventoryService;
+        this.stock = stock;
         this.auditService = auditService;
         this.tx = new TransactionTemplate(transactionManager);
         this.executor = executor;
@@ -150,7 +150,7 @@ public class ProductImportService {
                 product.setPrice(price);
                 productRepository.save(product);
                 if (existing.isEmpty()) {
-                    inventoryService.initialize(product, Math.max(stock, 0), 10);
+                    this.stock.provision(product.getId(), Math.max(stock, 0), 10);
                     created++;
                 } else {
                     updated++;
