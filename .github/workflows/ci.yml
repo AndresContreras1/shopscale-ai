@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   backend:
     name: Backend (build + tests)
@@ -19,7 +22,9 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-      - name: Build and test
+      # verify runs the tests against PostgreSQL and Redis containers and then the Spotless check.
+      # The runner ships with Docker, which is what Testcontainers needs.
+      - name: Build, test and check formatting
         run: ./mvnw -B verify
 
   frontend:
@@ -37,6 +42,23 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npx ng build --configuration production
+
+  security:
+    name: Dependency and secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Known vulnerabilities in the dependencies and in anything checked in.
+      # Fails on HIGH and CRITICAL only, and only where a fix exists, so the gate stays believable.
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          format: table
 
   docker:
     name: Docker images

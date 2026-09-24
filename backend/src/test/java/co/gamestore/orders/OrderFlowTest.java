@@ -3,6 +3,7 @@ package co.gamestore.orders;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import co.gamestore.ContainersConfig;
 import co.gamestore.catalog.ProductRepository;
 import co.gamestore.common.BusinessException;
 import co.gamestore.common.NotFoundException;
@@ -15,10 +16,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(ContainersConfig.class)
 class OrderFlowTest {
 
     static final String CUSTOMER = "customer@gamestore.co";

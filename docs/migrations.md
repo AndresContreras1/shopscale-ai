@@ -52,6 +52,6 @@ docker compose up -d postgres
 docker compose run --rm api java -jar app.jar --spring.flyway.validate-on-migrate=true
 ```
 
-The continuous integration pipeline starts an empty PostgreSQL container, runs every migration from
-scratch and then boots the application, so a migration that does not match the entities fails the
-build rather than the deploy.
+The test suite does this on every run: Testcontainers starts an empty PostgreSQL, Flyway applies
+every migration from scratch and Hibernate validates the result against the entities. A migration
+that does not match the code fails the build rather than the deploy.

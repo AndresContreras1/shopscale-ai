@@ -1,6 +1,5 @@
 package co.gamestore.security.ratelimit;
 
-import tools.jackson.databind.ObjectMapper;
 import co.gamestore.common.ProblemType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +9,7 @@ import java.io.IOException;
 import java.time.Duration;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Protects the API from abuse (scraping, brute force on login, runaway clients).

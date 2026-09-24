@@ -38,7 +38,7 @@ is in [demo-guide.md](demo-guide.md).
 | Layer | Technology |
 |---|---|
 | API | Java 25 LTS (virtual threads on), Spring Boot 4.1, Spring Data JPA, Spring Security 7, Bean Validation |
-| Database | PostgreSQL 16, schema owned by Flyway migrations (H2 in-memory for tests) |
+| Database | PostgreSQL 16, schema owned by Flyway migrations, also in tests through Testcontainers |
 | Cache / shared state | Redis (Caffeine in memory for local runs) |
 | Frontend | Angular 20 (standalone components, signals, lazy routes) |
 | AI | Google Gemini or OpenAI over REST, rule-based fallback |

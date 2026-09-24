@@ -1,6 +1,5 @@
 package co.gamestore.ai;
 
-import tools.jackson.databind.ObjectMapper;
 import co.gamestore.ai.AiDtos.AiReport;
 import co.gamestore.ai.AiDtos.AiStatus;
 import co.gamestore.ai.AiDtos.ReportType;
@@ -21,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Builds business reports in two steps:
