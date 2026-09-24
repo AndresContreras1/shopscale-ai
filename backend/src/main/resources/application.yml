@@ -99,6 +99,13 @@ app:
       model: ${OPENAI_MODEL:gpt-4o-mini}
       base-url: https://api.openai.com
   security:
+    password:
+      # Off in environments without outbound internet access; the length and blocklist rules still apply.
+      breach-check: ${PASSWORD_BREACH_CHECK:true}
+    login:
+      # Failed attempts per account before it stops answering, regardless of where they come from.
+      max-failures-per-account: 8
+      failure-window: PT15M
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
     rate-limit:

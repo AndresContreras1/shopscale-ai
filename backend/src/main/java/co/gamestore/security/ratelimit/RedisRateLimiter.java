@@ -21,12 +21,21 @@ public class RedisRateLimiter implements RateLimiter {
 
     @Override
     public long tryAcquire(String key, int limit, Duration window) {
-        long windowId = System.currentTimeMillis() / window.toMillis();
-        String bucket = "gamestore:" + key + ":" + windowId;
+        String bucket = bucket(key, window);
         Long hits = redis.opsForValue().increment(bucket);
         if (hits != null && hits == 1) {
             redis.expire(bucket, window.plusSeconds(1));
         }
         return limit - (hits == null ? 0 : hits);
+    }
+
+    @Override
+    public long remaining(String key, int limit, Duration window) {
+        String value = redis.opsForValue().get(bucket(key, window));
+        return limit - (value == null ? 0 : Long.parseLong(value));
+    }
+
+    private static String bucket(String key, Duration window) {
+        return "gamestore:" + key + ":" + System.currentTimeMillis() / window.toMillis();
     }
 }

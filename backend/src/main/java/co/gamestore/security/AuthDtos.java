@@ -2,7 +2,6 @@ package co.gamestore.security;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public final class AuthDtos {
@@ -15,9 +14,8 @@ public final class AuthDtos {
 
     public record RegisterRequest(
             @NotBlank @Email @Size(max = 120) String email,
-            @NotBlank @Size(min = 8, max = 72)
-            @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "must contain letters and digits")
-            String password,
+            // Length and blocklist rules live in PasswordPolicy, in one place, with one message.
+            @NotBlank String password,
             @NotBlank @Size(max = 120) String fullName) {
     }
 

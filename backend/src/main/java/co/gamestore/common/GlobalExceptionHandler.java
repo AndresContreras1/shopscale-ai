@@ -27,6 +27,11 @@ public class GlobalExceptionHandler {
         return ProblemType.NOT_FOUND.toProblem(ex.getMessage(), req.getRequestURI());
     }
 
+    @ExceptionHandler(ProblemException.class)
+    public ProblemDetail problem(ProblemException ex, HttpServletRequest req) {
+        return ex.type().toProblem(ex.getMessage(), req.getRequestURI());
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ProblemDetail business(BusinessException ex, HttpServletRequest req) {
         return ProblemType.BUSINESS_RULE.toProblem(ex.getMessage(), req.getRequestURI());

@@ -7,3 +7,9 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+
+app:
+  security:
+    password:
+      # No network in tests: the k-anonymity exchange has its own test with a stubbed server.
+      breach-check: false
