@@ -3,9 +3,13 @@
 spring:
   application:
     name: gamestore-api
+  threads:
+    virtual:
+      # Boot 4 on Java 25: each request runs on a virtual thread (JEP 491 removed pinning).
+      enabled: true
   autoconfigure:
     # Users come from the database; no generated default password.
-    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   # Local runs cache in memory (Caffeine). Docker Compose switches to Redis so all replicas share one cache.
   cache:
     type: ${CACHE_TYPE:caffeine}

@@ -37,7 +37,7 @@ is in [demo-guide.md](demo-guide.md).
 
 | Layer | Technology |
 |---|---|
-| API | Java 17, Spring Boot 3.5, Spring Data JPA, Spring Security, Bean Validation |
+| API | Java 25 LTS (virtual threads on), Spring Boot 4.1, Spring Data JPA, Spring Security 7, Bean Validation |
 | Database | PostgreSQL 16 (H2 in-memory for local runs and tests) |
 | Cache / shared state | Redis (Caffeine in memory for local runs) |
 | Frontend | Angular 20 (standalone components, signals, lazy routes) |
@@ -57,7 +57,9 @@ docker compose up --build
 - Swagger UI: http://localhost:8088/swagger-ui/index.html
 - Scale out: `docker compose up -d --scale api=4`
 
-**Option B: local, no dependencies** (H2 in-memory, in-process cache)
+**Option B: local, no dependencies** (H2 in-memory, in-process cache). Needs a JDK 25; with an older
+JDK installed, build inside a container instead:
+`docker run --rm -v "$PWD/backend":/app -w /app maven:3.9-eclipse-temurin-25 mvn test`
 
 ```bash
 cd backend

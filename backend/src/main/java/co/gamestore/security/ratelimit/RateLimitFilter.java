@@ -1,6 +1,6 @@
 package co.gamestore.security.ratelimit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import co.gamestore.common.ApiError;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
