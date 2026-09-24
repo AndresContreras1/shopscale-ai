@@ -1,10 +1,10 @@
 package co.gamestore.ai;
 
-import tools.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Google Gemini through its REST API (generateContent).

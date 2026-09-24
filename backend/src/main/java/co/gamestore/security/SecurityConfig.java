@@ -1,6 +1,5 @@
 package co.gamestore.security;
 
-import tools.jackson.databind.ObjectMapper;
 import co.gamestore.common.ProblemType;
 import co.gamestore.security.ratelimit.RateLimitFilter;
 import co.gamestore.security.ratelimit.RateLimiter;
@@ -22,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @EnableMethodSecurity

@@ -1,13 +1,9 @@
-# Tests still run on in-memory H2 in PostgreSQL mode, so Hibernate creates the schema here and
-# Flyway stays off. The next PR (chore/testcontainers-ci) replaces this with a real PostgreSQL
-# container, which is the only way the migrations themselves get tested.
+# Tests run against the containers declared in ContainersConfig: the connection details are injected
+# by @ServiceConnection, so nothing is configured here. Flyway runs and Hibernate validates, exactly
+# as in production, which is what makes a broken migration fail the build instead of the deploy.
 spring:
-  datasource:
-    url: jdbc:h2:mem:gamestore;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
-    username: sa
-    password:
-  flyway:
-    enabled: false
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
+  flyway:
+    enabled: true
