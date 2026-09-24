@@ -4,24 +4,24 @@ import { catchError, tap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 import { InstanceService } from './instance.service';
 
-/** Adds the JWT to API calls and drops the session when the backend says it is no longer valid. */
+/**
+ * Nothing is added to the request: the session cookie travels on its own and Angular attaches the
+ * XSRF header by itself. This only reacts when the API says the session is no longer valid.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const instances = inject(InstanceService);
-  const token = auth.token;
-  const request = token && req.url.startsWith('/api/')
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
 
-  return next(request).pipe(
+  return next(req).pipe(
     tap((event) => {
       if (event instanceof HttpResponse) {
         instances.record(event.headers.get('X-Served-By'));
       }
     }),
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && token) {
-        auth.logout();
+      // Ignoring /me avoids reacting while the app is still asking whether anyone is signed in.
+      if (error.status === 401 && auth.isLoggedIn() && !req.url.endsWith('/api/auth/me')) {
+        auth.clearSession();
       }
       return throwError(() => error);
     }),

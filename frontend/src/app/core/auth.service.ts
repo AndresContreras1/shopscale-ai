@@ -2,47 +2,51 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse, Role, User } from './models';
+import { Role, User } from './models';
 
-const STORAGE_KEY = 'gamestore.session';
-
-interface Session {
-  token: string;
-  expiresAt: string;
-  user: User;
-}
-
+/**
+ * The session lives in a HttpOnly cookie that this code cannot read, which is the point: a script
+ * injected into the page cannot steal it either. Who the user is comes from the API, never from
+ * browser storage, so a tampered entry in localStorage cannot grant a role.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly session = signal<Session | null>(this.restore());
+  private readonly current = signal<User | null>(null);
+  private readonly resolved = signal(false);
 
-  readonly user = computed(() => this.session()?.user ?? null);
-  readonly isLoggedIn = computed(() => this.session() !== null);
+  readonly user = computed(() => this.current());
+  readonly isLoggedIn = computed(() => this.current() !== null);
   readonly isAdmin = computed(() => this.user()?.role === 'ADMIN');
   readonly isStaff = computed(() => this.user()?.role === 'ADMIN' || this.user()?.role === 'OPERATOR');
+  /** False until the first call to /me answers, so a guard does not redirect during the page load. */
+  readonly sessionChecked = computed(() => this.resolved());
 
-  get token(): string | null {
-    return this.session()?.token ?? null;
+  constructor() {
+    this.restore();
   }
 
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/login', { email, password }).pipe(tap((r) => this.store(r)));
+  login(email: string, password: string): Observable<User> {
+    return this.http.post<User>('/api/auth/login', { email, password }).pipe(tap((user) => this.current.set(user)));
   }
 
-  register(email: string, password: string, fullName: string): Observable<AuthResponse> {
+  register(email: string, password: string, fullName: string): Observable<User> {
     return this.http
-      .post<AuthResponse>('/api/auth/register', { email, password, fullName })
-      .pipe(tap((r) => this.store(r)));
+      .post<User>('/api/auth/register', { email, password, fullName })
+      .pipe(tap((user) => this.current.set(user)));
   }
 
   logout(redirect = true): void {
-    this.session.set(null);
-    localStorage.removeItem(STORAGE_KEY);
-    if (redirect) {
-      this.router.navigateByUrl('/');
-    }
+    this.http.post<void>('/api/auth/logout', {}).subscribe({
+      next: () => this.finish(redirect),
+      error: () => this.finish(redirect),
+    });
+  }
+
+  /** Drops the local view of the session without calling the API, for when the API already said 401. */
+  clearSession(): void {
+    this.current.set(null);
   }
 
   hasRole(...roles: Role[]): boolean {
@@ -50,22 +54,23 @@ export class AuthService {
     return role !== undefined && roles.includes(role);
   }
 
-  private store(response: AuthResponse): void {
-    const session: Session = { token: response.token, expiresAt: response.expiresAt, user: response.user };
-    this.session.set(session);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  private finish(redirect: boolean): void {
+    this.current.set(null);
+    if (redirect) {
+      this.router.navigateByUrl('/');
+    }
   }
 
-  private restore(): Session | null {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return null;
-      }
-      const session = JSON.parse(raw) as Session;
-      return new Date(session.expiresAt) > new Date() ? session : null;
-    } catch {
-      return null;
-    }
+  private restore(): void {
+    this.http.get<User>('/api/auth/me').subscribe({
+      next: (user) => {
+        this.current.set(user);
+        this.resolved.set(true);
+      },
+      error: () => {
+        this.current.set(null);
+        this.resolved.set(true);
+      },
+    });
   }
 }

@@ -25,7 +25,7 @@ flowchart LR
 | **Inventory** | On hand / reserved / available, append-only stock ledger, reorder points, low-stock alerts | `inventory` |
 | **No overselling** | Atomic conditional `UPDATE` for reservations, optimistic locking with retry elsewhere, deadlock-free multi-item checkout. Flash sale simulator: 200 concurrent buyers, never below zero | `InventoryRepository`, `FlashSaleSimulator` |
 | **Orders** | Checkout reserves, payment commits, cancel/expiry releases; unpaid reservations expire after 15 min | `orders` |
-| **Security** | JWT + roles (admin, operator, customer), BCrypt, per-IP rate limiting (strict on login), audit log, constant-time login, validated inputs | `security`, `audit` |
+| **Security** | Cookie sessions in Redis with CSRF protection, roles (admin, operator, customer), BCrypt, per-IP rate limiting (strict on login), audit log, constant-time login, validated inputs | `security`, `audit` |
 | **Scalability** | Stateless API, 2+ replicas behind Nginx, Redis cache and distributed rate limits, bounded connection pools, async CSV import in batches | `docker-compose.yml`, `common` |
 | **AI reports** | Inventory health and sales reports (English/Spanish), product description suggestions; facts computed by code, provider fallback, cached for 10 min | `analytics`, `ai` |
 | **Back office** | KPI dashboard, restock suggestions, inventory with ledger, product editor, CSV import, AI reports, audit log | `frontend/src/app/admin` |

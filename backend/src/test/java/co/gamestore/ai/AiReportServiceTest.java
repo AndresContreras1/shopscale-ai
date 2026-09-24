@@ -1,6 +1,7 @@
 package co.gamestore.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -95,7 +96,7 @@ class AiReportServiceTest {
     @Test
     @WithMockUser(roles = "OPERATOR")
     void aiReportsAreAdminOnly() throws Exception {
-        mvc.perform(post("/api/ai/reports/inventory").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(post("/api/ai/reports/inventory").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden());
     }
 }

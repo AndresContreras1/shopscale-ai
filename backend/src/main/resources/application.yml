@@ -19,6 +19,9 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: 6379
+  session:
+    redis:
+      namespace: gamestore:session
   datasource:
     url: jdbc:postgresql://localhost:5432/gamestore
     username: gamestore
@@ -47,6 +50,18 @@ spring:
 server:
   port: 8080
   shutdown: graceful
+  servlet:
+    session:
+      # Long enough for a working day, short enough that a shared computer is not a standing invitation.
+      timeout: 8h
+      cookie:
+        # The __Host- prefix is a promise the browser enforces: secure, path /, no Domain, so a
+        # sibling subdomain cannot overwrite the session cookie. HttpOnly keeps it out of JavaScript.
+        name: ${SESSION_COOKIE_NAME:__Host-SID}
+        http-only: true
+        secure: ${SESSION_COOKIE_SECURE:true}
+        same-site: lax
+        path: /
 
 management:
   health:
@@ -84,10 +99,6 @@ app:
       model: ${OPENAI_MODEL:gpt-4o-mini}
       base-url: https://api.openai.com
   security:
-    jwt:
-      # Override with the JWT_SECRET environment variable in any real deployment.
-      secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789abcdefghij}
-      ttl: PT2H
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
     rate-limit:

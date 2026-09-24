@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -28,22 +29,27 @@ import tools.jackson.databind.ObjectMapper;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService, RateLimiter rateLimiter,
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimiter rateLimiter,
                                                    ObjectMapper objectMapper,
                                                    @Value("${app.security.rate-limit.api-per-minute:300}") int apiLimit,
                                                    @Value("${app.security.rate-limit.login-per-minute:10}") int loginLimit)
             throws Exception {
-        var jwtFilter = new JwtAuthenticationFilter(jwtService);
         var rateLimitFilter = new RateLimitFilter(rateLimiter, objectMapper, apiLimit, loginLimit);
 
         http
-                // Stateless JWT API: no cookies, so no CSRF token and no HTTP session.
-                .csrf(csrf -> csrf.disable())
+                // The session id travels in a HttpOnly cookie, which JavaScript cannot read, so an XSS
+                // cannot steal it. Cookies are sent by the browser on any request, which reintroduces
+                // CSRF, so spa() turns the protection back on with the double-submit token an Angular
+                // client reads from the XSRF-TOKEN cookie and echoes in the X-XSRF-TOKEN header.
+                .csrf(csrf -> csrf.spa())
                 .cors(cors -> {
                 })
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(s -> s
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        // A new id on login, so a session id planted before signing in is worthless.
+                        .sessionFixation(fixation -> fixation.changeSessionId()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout").permitAll()
                         .requestMatchers("/api/products/import/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
@@ -59,8 +65,15 @@ public class SecurityConfig {
                                         "Authentication required", req.getRequestURI()))
                         .accessDeniedHandler((req, res, e) ->
                                 writeProblem(res, objectMapper, ProblemType.FORBIDDEN, null, req.getRequestURI())))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class);
+                .logout(logout -> logout
+                        // Spring Security invalidates the session and clears the context; the browser
+                        // keeps a cookie that no longer resolves to anything.
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT))
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true))
+                .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

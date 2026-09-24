@@ -1,21 +1,26 @@
 package co.gamestore.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import co.gamestore.ContainersConfig;
+import jakarta.servlet.http.Cookie;
+import java.util.Arrays;
+import java.util.Base64;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.session.Session;
+import org.springframework.session.SessionRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -27,7 +32,7 @@ class SecurityApiTest {
     MockMvc mvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    SessionRepository<?> sessionRepository;
 
     @Test
     void catalogIsPublic() throws Exception {
@@ -45,51 +50,79 @@ class SecurityApiTest {
 
     @Test
     void customersCannotSeeInventory() throws Exception {
-        String token = login("customer@gamestore.co", "Customer123!", "10.0.0.1");
-        mvc.perform(get("/api/inventory").header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+        Cookie[] session = login("customer@gamestore.co", "Customer123!", "10.0.0.1");
+        mvc.perform(get("/api/inventory").cookie(session)).andExpect(status().isForbidden());
     }
 
     @Test
     void operatorsCanSeeInventoryButCannotEditPrices() throws Exception {
-        String token = login("operator@gamestore.co", "Operator123!", "10.0.0.2");
-        mvc.perform(get("/api/inventory").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
-        mvc.perform(post("/api/products").header("Authorization", "Bearer " + token)
+        Cookie[] session = login("operator@gamestore.co", "Operator123!", "10.0.0.2");
+        mvc.perform(get("/api/inventory").cookie(session)).andExpect(status().isOk());
+        mvc.perform(post("/api/products").with(csrf()).cookie(session)
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void rejectsWrongPasswordAndTamperedTokens() throws Exception {
-        mvc.perform(post("/api/auth/login").header("X-Forwarded-For", "10.0.0.3")
+    void rejectsTheWrongPassword() throws Exception {
+        mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", "10.0.0.3")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"admin@gamestore.co\",\"password\":\"wrong\"}"))
                 .andExpect(status().isUnauthorized());
-        String token = login("admin@gamestore.co", "Admin123!", "10.0.0.3");
-        mvc.perform(get("/api/audit").header("Authorization", "Bearer " + token + "x"))
-                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * The acceptance criterion for replicas: the session is not in this process's memory, it is a row
+     * in the shared store, so the next request can be served by any instance.
+     */
+    @Test
+    void storesTheSessionWhereEveryReplicaCanReadIt() throws Exception {
+        Cookie[] cookies = login("admin@gamestore.co", "Admin123!", "10.0.0.5");
+        String sessionCookie = Arrays.stream(cookies)
+                .filter(cookie -> !"XSRF-TOKEN".equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElseThrow();
+
+        Session stored = sessionRepository.findById(decode(sessionCookie));
+
+        assertThat(stored).isNotNull();
+        assertThat(stored.<Object>getAttribute("SPRING_SECURITY_CONTEXT")).isNotNull();
+    }
+
+    @Test
+    void signsOutByInvalidatingTheSession() throws Exception {
+        Cookie[] session = login("customer@gamestore.co", "Customer123!", "10.0.0.6");
+        mvc.perform(get("/api/auth/me").cookie(session)).andExpect(status().isOk());
+
+        mvc.perform(post("/api/auth/logout").with(csrf()).cookie(session)).andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/auth/me").cookie(session)).andExpect(status().isUnauthorized());
     }
 
     @Test
     void blocksLoginBruteForce() throws Exception {
         String body = "{\"email\":\"admin@gamestore.co\",\"password\":\"guess\"}";
         for (int i = 0; i < 10; i++) {
-            mvc.perform(post("/api/auth/login").header("X-Forwarded-For", "10.9.9.9")
+            mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", "10.9.9.9")
                     .contentType(MediaType.APPLICATION_JSON).content(body));
         }
-        mvc.perform(post("/api/auth/login").header("X-Forwarded-For", "10.9.9.9")
+        mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", "10.9.9.9")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isTooManyRequests());
     }
 
-    private String login(String email, String password, String ip) throws Exception {
-        String response = mvc.perform(post("/api/auth/login").header("X-Forwarded-For", ip)
+    private Cookie[] login(String email, String password, String ip) throws Exception {
+        return mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password)))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        JsonNode json = objectMapper.readTree(response);
-        return json.get("token").asText();
+                .andExpect(jsonPath("$.email").value(email))
+                .andReturn().getResponse().getCookies();
+    }
+
+    /** Spring Session sends the id base64 encoded in the cookie. */
+    private static String decode(String cookieValue) {
+        return new String(Base64.getDecoder().decode(cookieValue));
     }
 }
