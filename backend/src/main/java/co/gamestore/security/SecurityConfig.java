@@ -1,7 +1,7 @@
 package co.gamestore.security;
 
 import tools.jackson.databind.ObjectMapper;
-import co.gamestore.common.ApiError;
+import co.gamestore.common.ProblemType;
 import co.gamestore.security.ratelimit.RateLimitFilter;
 import co.gamestore.security.ratelimit.RateLimiter;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,9 +55,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) ->
-                                writeError(res, objectMapper, 401, "Unauthorized", "Authentication required", req.getRequestURI()))
+                                writeProblem(res, objectMapper, ProblemType.UNAUTHENTICATED,
+                                        "Authentication required", req.getRequestURI()))
                         .accessDeniedHandler((req, res, e) ->
-                                writeError(res, objectMapper, 403, "Forbidden", "Insufficient permissions", req.getRequestURI())))
+                                writeProblem(res, objectMapper, ProblemType.FORBIDDEN, null, req.getRequestURI())))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class);
         return http.build();
@@ -82,10 +83,14 @@ public class SecurityConfig {
         return source;
     }
 
-    private static void writeError(HttpServletResponse res, ObjectMapper mapper, int status, String error,
-                                   String message, String path) throws IOException {
-        res.setStatus(status);
-        res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        mapper.writeValue(res.getOutputStream(), ApiError.of(status, error, message, path));
+    /**
+     * The filter chain rejects a request before any controller runs, so the RFC 9457 body is written
+     * here by hand. Same shape as every other error, otherwise clients need two parsers.
+     */
+    private static void writeProblem(HttpServletResponse res, ObjectMapper mapper, ProblemType type,
+                                     String detail, String path) throws IOException {
+        res.setStatus(type.status().value());
+        res.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+        mapper.writeValue(res.getOutputStream(), type.toProblem(detail, path));
     }
 }
