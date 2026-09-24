@@ -77,6 +77,11 @@ Stock is never cached. In Docker the cache is Redis, shared by every replica.
 - Staff accounts carry a second factor (TOTP, RFC 6238) with single-use recovery codes. The password
   alone opens nothing once it is enrolled, and the shared secret is encrypted at rest.
 - Constant-time login (no user enumeration), 404 instead of 403 for other customers' orders.
+- Every response carries a content security policy, HSTS, `nosniff`, a referrer policy, a permissions
+  policy and the cross-origin isolation headers, and says caches must keep nothing. The API policy
+  allows nothing at all; only the documentation gets a looser one, from its own filter chain.
+- The back office answers on its own host name and only from an allow-list of addresses. Anyone else
+  gets 404, which reveals less than 403.
 - Audit log for sensitive actions; failed logins are recorded even though the request fails.
 - Validation on every input, uniform error body, no stack traces in responses.
 
