@@ -12,7 +12,7 @@ flowchart LR
     A1 & A2 -.->|facts only| AI[AI provider<br/>Gemini / OpenAI]
 ```
 
-The API is **stateless**: authentication travels in a signed JWT and all shared state lives in
+No replica holds anything of its own: the session lives in Redis and every other piece of state in
 PostgreSQL or Redis. Any replica can answer any request, so capacity grows by adding replicas
 (`docker compose up -d --scale api=4`).
 
@@ -23,7 +23,7 @@ PostgreSQL or Redis. Any replica can answer any request, so capacity grows by ad
 | `catalog` | Products, categories, search with composable filters, soft delete, bulk CSV import |
 | `inventory` | Stock per product (on hand, reserved, available), append-only movement ledger, flash sale simulator |
 | `orders` | Checkout, simulated payment, cancellation, automatic expiry of unpaid reservations |
-| `security` | JWT authentication, roles, rate limiting, security headers |
+| `security` | Cookie sessions, CSRF, roles, rate limiting, security headers |
 | `audit` | Who changed what and when (prices, stock, logins, AI usage) |
 | `analytics` | KPIs, sales velocity, days of cover, restock suggestions |
 | `ai` | Provider-agnostic AI client, report generation, fallback writer |
@@ -66,7 +66,9 @@ never conflicts with a checkout.
 Stock is never cached. In Docker the cache is Redis, shared by every replica.
 
 ### 6. Security
-- Stateless JWT (2 h), BCrypt passwords, role-based access (`ADMIN`, `OPERATOR`, `CUSTOMER`).
+- Session in Redis behind a `HttpOnly` cookie, CSRF double-submit token, BCrypt passwords,
+  role-based access (`ADMIN`, `OPERATOR`, `CUSTOMER`). See
+  [ADR-008](adr/ADR-008-sessions-over-jwt.md) for why the token left the browser's storage.
 - Rate limiting per IP: 10 login attempts/min (brute force), 300 API calls/min. Stored in Redis so the
   limit holds across replicas.
 - Constant-time login (no user enumeration), 404 instead of 403 for other customers' orders.

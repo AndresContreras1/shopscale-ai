@@ -71,9 +71,9 @@ export class LoginPage {
       ? this.auth.register(this.email, this.password, this.fullName)
       : this.auth.login(this.email, this.password);
     call.subscribe({
-      next: (r) => {
+      next: (user) => {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        const home = r.user.role === 'CUSTOMER' ? '/' : '/admin';
+        const home = user.role === 'CUSTOMER' ? '/' : '/admin';
         this.router.navigateByUrl(returnUrl ?? home);
       },
       error: (e) => {

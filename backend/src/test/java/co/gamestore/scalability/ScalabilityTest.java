@@ -1,6 +1,7 @@
 package co.gamestore.scalability;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -53,7 +54,7 @@ class ScalabilityTest {
                 """;
         var file = new MockMultipartFile("file", "products.csv", "text/csv", csv.getBytes(StandardCharsets.UTF_8));
 
-        String body = mvc.perform(multipart("/api/products/import").file(file))
+        String body = mvc.perform(multipart("/api/products/import").with(csrf()).file(file))
                 .andExpect(status().isAccepted())
                 .andReturn().getResponse().getContentAsString();
         String jobId = objectMapper.readTree(body).get("id").asText();

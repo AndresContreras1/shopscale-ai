@@ -29,7 +29,7 @@ Start the stack with `docker compose up --build` and open http://localhost:8088
 3. *Products > Import CSV* with a generated feed (`python tools/generate_products_csv.py 5000`):
    processed in the background while the app stays responsive.
 4. *Audit log*: logins, failed logins, price changes, stock adjustments.
-5. Swagger UI: every endpoint documented and testable with the JWT.
+5. Swagger UI: every endpoint documented and testable once you are signed in.
 
 ## Questions you can expect
 - **Why not lock the row pessimistically?** The conditional update is a single statement: no lock

@@ -9,7 +9,8 @@ costs, so the reasoning survives the people who were in the room.
 | [002](ADR-002-money.md) | Money as a value object in minor units | Accepted |
 | [004](ADR-004-identifiers.md) | Internal identity keys, public UUIDv7 | Accepted |
 | [005](ADR-005-errors.md) | RFC 9457 problem details with a stable error catalog | Accepted |
+| [008](ADR-008-sessions-over-jwt.md) | Server sessions in a cookie instead of a JWT in the browser | Accepted |
 
 The remaining records in the [master plan](../master-plan.md) arrive with the phase that implements
-them: time and time zones (003), idempotency (006), state machines (007), sessions over JWT (008),
-facts before AI (009) and provider ports (010).
+them: time and time zones (003), idempotency (006), state machines (007), facts before AI (009) and
+provider ports (010).

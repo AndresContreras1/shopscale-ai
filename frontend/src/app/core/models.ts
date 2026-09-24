@@ -51,12 +51,6 @@ export interface User {
   role: Role;
 }
 
-export interface AuthResponse {
-  token: string;
-  expiresAt: string;
-  user: User;
-}
-
 export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'EXPIRED';
 
 export interface OrderLine {

@@ -3,7 +3,6 @@ package co.gamestore.security;
 import co.gamestore.audit.AuditService;
 import co.gamestore.common.BusinessException;
 import co.gamestore.common.NotFoundException;
-import co.gamestore.security.AuthDtos.AuthResponse;
 import co.gamestore.security.AuthDtos.LoginRequest;
 import co.gamestore.security.AuthDtos.RegisterRequest;
 import co.gamestore.security.AuthDtos.UserResponse;
@@ -19,14 +18,17 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
     private final AuditService auditService;
 
     /** Compared against when the email does not exist, so both cases take the same time (no user enumeration). */
     private String dummyHash;
 
+    /**
+     * Checks the credentials and returns the user. Issuing the session is the controller's job: this
+     * service decides who you are, not how the browser remembers it.
+     */
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public User authenticate(LoginRequest request) {
         User user = userRepository.findByEmailIgnoreCase(request.email()).orElse(null);
         String hash = user != null ? user.getPasswordHash() : dummyHash();
         boolean valid = passwordEncoder.matches(request.password(), hash);
@@ -35,29 +37,24 @@ public class AuthService {
             throw new BadCredentialsException("Invalid credentials");
         }
         auditService.record(user.getEmail(), "LOGIN", "User", user.getId(), null);
-        return toAuthResponse(user);
+        return user;
     }
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public User register(RegisterRequest request) {
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new BusinessException("Email already registered");
         }
         User user = userRepository.save(new User(request.email().toLowerCase(),
                 passwordEncoder.encode(request.password()), request.fullName(), Role.CUSTOMER));
         auditService.record(user.getEmail(), "REGISTER", "User", user.getId(), null);
-        return toAuthResponse(user);
+        return user;
     }
 
     @Transactional(readOnly = true)
     public UserResponse me(String email) {
         return userRepository.findByEmailIgnoreCase(email).map(UserResponse::from)
                 .orElseThrow(() -> new NotFoundException("User", email));
-    }
-
-    private AuthResponse toAuthResponse(User user) {
-        JwtService.IssuedToken token = jwtService.issue(user);
-        return new AuthResponse(token.token(), token.expiresAt(), UserResponse.from(user));
     }
 
     private String dummyHash() {

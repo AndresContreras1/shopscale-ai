@@ -1,5 +1,6 @@
 package co.gamestore.catalog;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -59,7 +60,7 @@ class ProductApiTest {
         String body = """
                 {"sku":"ELEC-PHN-001","name":"Duplicate","categoryId":%d,"price":10.00}
                 """.formatted(categoryId);
-        mvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/api/products").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isConflict());
     }
 
@@ -69,7 +70,7 @@ class ProductApiTest {
         String body = """
                 {"sku":"bad sku","name":"","categoryId":1,"price":-5}
                 """;
-        mvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/api/products").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
                 .andExpect(jsonPath("$.type").value("https://gamestore.co/problems/validation-failed"))
