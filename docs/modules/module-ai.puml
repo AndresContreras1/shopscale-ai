@@ -1,0 +1,40 @@
+@startuml
+title <size:24>Ai</size>
+
+set separator none
+top to bottom direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+System_Boundary("GameStore_boundary", "Game Store", $tags="") {
+  Container_Boundary("GameStore.GameStore_boundary", "Game Store", $tags="") {
+    Component(GameStore.GameStore.Ai, "Ai", $techn="Module", $descr="", $tags="", $link="")
+    Component(GameStore.GameStore.Common, "Common", $techn="Module", $descr="", $tags="", $link="")
+    Component(GameStore.GameStore.Audit, "Audit", $techn="Module", $descr="", $tags="", $link="")
+    Component(GameStore.GameStore.Catalog, "Catalog", $techn="Module", $descr="", $tags="", $link="")
+    Component(GameStore.GameStore.Analytics, "Analytics", $techn="Module", $descr="", $tags="", $link="")
+  }
+
+}
+
+Rel(GameStore.GameStore.Catalog, GameStore.GameStore.Common, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Catalog, GameStore.GameStore.Audit, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Audit, GameStore.GameStore.Common, "depends on", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Analytics, GameStore.GameStore.Catalog, "depends on", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Ai, GameStore.GameStore.Common, "depends on", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Ai, GameStore.GameStore.Analytics, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Ai, GameStore.GameStore.Catalog, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Ai, GameStore.GameStore.Audit, "uses", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

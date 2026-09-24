@@ -1,0 +1,37 @@
+@startuml
+title <size:24>Analytics</size>
+
+set separator none
+top to bottom direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+System_Boundary("GameStore_boundary", "Game Store", $tags="") {
+  Container_Boundary("GameStore.GameStore_boundary", "Game Store", $tags="") {
+    Component(GameStore.GameStore.Catalog, "Catalog", $techn="Module", $descr="", $tags="", $link="")
+    Component(GameStore.GameStore.Inventory, "Inventory", $techn="Module", $descr="", $tags="", $link="")
+    Component(GameStore.GameStore.Orders, "Orders", $techn="Module", $descr="", $tags="", $link="")
+    Component(GameStore.GameStore.Analytics, "Analytics", $techn="Module", $descr="", $tags="", $link="")
+  }
+
+}
+
+Rel(GameStore.GameStore.Orders, GameStore.GameStore.Catalog, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Orders, GameStore.GameStore.Inventory, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Analytics, GameStore.GameStore.Catalog, "depends on", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Analytics, GameStore.GameStore.Orders, "depends on", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Analytics, GameStore.GameStore.Inventory, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Inventory, GameStore.GameStore.Catalog, "depends on", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

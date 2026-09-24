@@ -1,0 +1,19 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.analytics`
+|Spring components
+|_Controllers_
+
+* `c.g.a.DashboardController`
+
+_Services_
+
+* `c.g.a.AnalyticsService`
+
+_Repositories_
+
+* `c.g.a.SalesQueryRepository`
+|Bean references
+|* `c.g.i.InventoryRepository` (in Inventory)
+|===

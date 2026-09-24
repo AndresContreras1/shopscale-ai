@@ -1,0 +1,26 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.security`
+|Spring components
+|_Controllers_
+
+* `c.g.s.AuthController`
+
+_Services_
+
+* `c.g.s.AuthService`
+* `c.g.s.JwtService`
+
+_Repositories_
+
+* `c.g.s.UserRepository`
+
+_Others_
+
+* `c.g.s.SecurityConfig`
+|Bean references
+|* `c.g.a.AuditService` (in Audit)
+|Aggregate roots
+|* `c.g.s.User`
+|===

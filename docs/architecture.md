@@ -84,11 +84,27 @@ CSV imports return `202 Accepted` with a job id and are processed in batches of 
 transaction, on a bounded thread pool. Job progress is stored in the database because the status
 request may reach a different replica.
 
+## Module boundaries
+
+The application is a modular monolith. Each package directly under `co.gamestore` is an application
+module: it exposes the types in its own top-level package and keeps everything else in nested
+packages that no other module may touch. `common` is the shared kernel.
+
+`ModularityTests` fails the build when a module reaches into another module's internals or when two
+modules end up depending on each other. The catalog needed stock figures and the inventory needed
+products, which is a cycle, so the catalog now talks to the `StockPort` interface in the shared
+kernel and the inventory module implements it.
+
+The same test regenerates the diagrams and the module canvases in [`modules/`](modules/), so the
+picture cannot drift from the code. `components.puml` renders with PlantUML and the C4 library.
+
+Domain events are written to `event_publication` in the same transaction as the change that produced
+them, which is what makes a failed listener replayable instead of lost.
+
 ## Scaling further (next steps)
 - Read replicas for catalog and analytics queries.
 - Message broker (Kafka / RabbitMQ) for order events: emails, invoicing and analytics consume them
   asynchronously.
 - Materialized views or a data warehouse for analytics at millions of orders.
-- Database migrations with Flyway instead of `ddl-auto`.
 - CDN for static assets and product images.
 - Distributed lock (ShedLock) for scheduled jobs, observability with Prometheus + Grafana.

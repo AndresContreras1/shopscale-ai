@@ -1,0 +1,19 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`co.gamestore.audit`
+|Spring components
+|_Controllers_
+
+* `c.g.a.AuditController`
+
+_Services_
+
+* `c.g.a.AuditService`
+
+_Repositories_
+
+* `c.g.a.AuditLogRepository`
+|Aggregate roots
+|* `c.g.a.AuditLog`
+|===
