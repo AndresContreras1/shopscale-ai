@@ -89,11 +89,11 @@ public class DataSeeder implements ApplicationRunner {
         }
         try {
             transactionTemplate.executeWithoutResult(status -> {
-                userRepository.save(new User("admin@" + brand.domain(), passwordEncoder.encode("Demo-Admin-2026!"),
+                userRepository.save(User.createdByStaff("admin@" + brand.domain(), passwordEncoder.encode("Demo-Admin-2026!"),
                         "Ada Admin", Role.ADMIN));
-                userRepository.save(new User("operator@" + brand.domain(), passwordEncoder.encode("Demo-Operator-2026!"),
+                userRepository.save(User.createdByStaff("operator@" + brand.domain(), passwordEncoder.encode("Demo-Operator-2026!"),
                         "Oscar Operator", Role.OPERATOR));
-                userRepository.save(new User("customer@" + brand.domain(), passwordEncoder.encode("Demo-Customer-2026!"),
+                userRepository.save(User.createdByStaff("customer@" + brand.domain(), passwordEncoder.encode("Demo-Customer-2026!"),
                         "Carla Customer", Role.CUSTOMER));
             });
         } catch (DataIntegrityViolationException ex) {

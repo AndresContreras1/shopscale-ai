@@ -68,6 +68,17 @@ public class User {
         this.role = role;
     }
 
+    /**
+     * For accounts an operator creates rather than someone registering: the address was not typed by
+     * a stranger, so there is nothing to prove by sending a link to it.
+     */
+    public static User createdByStaff(String email, String passwordHash, String fullName, Role role) {
+        User user = new User(email, passwordHash, fullName, role);
+        user.emailVerified = true;
+        user.emailVerifiedAt = Instant.now();
+        return user;
+    }
+
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();
