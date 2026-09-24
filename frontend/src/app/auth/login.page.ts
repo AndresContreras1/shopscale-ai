@@ -9,23 +9,35 @@ import { AuthService } from '../core/auth.service';
   imports: [FormsModule],
   template: `
     <section class="auth-wrap">
-      <form class="card auth-card" (ngSubmit)="submit()">
-        <h1>{{ registering() ? 'Create account' : 'Sign in' }}</h1>
-        @if (registering()) {
-          <label>Full name <input class="input" name="fullName" [(ngModel)]="fullName" required /></label>
-        }
-        <label>Email <input class="input" name="email" type="email" [(ngModel)]="email" required /></label>
-        <label>Password <input class="input" name="password" type="password" [(ngModel)]="password" required /></label>
-        @if (error()) {
-          <div class="alert error">{{ error() }}</div>
-        }
-        <button class="btn primary block" type="submit" [disabled]="busy()">
-          {{ registering() ? 'Create account' : 'Sign in' }}
-        </button>
-        <button class="link" type="button" (click)="registering.set(!registering())">
-          {{ registering() ? 'I already have an account' : 'New here? Create an account' }}
-        </button>
-      </form>
+      @if (awaitingCode()) {
+        <form class="card auth-card" (ngSubmit)="submitCode()">
+          <h1>One more step</h1>
+          <p class="muted">Enter the six digit code from your authenticator app, or a recovery code.</p>
+          <label>Code <input class="input" name="code" [(ngModel)]="code" required autocomplete="one-time-code" /></label>
+          @if (error()) {
+            <div class="alert error">{{ error() }}</div>
+          }
+          <button class="btn primary block" type="submit" [disabled]="busy()">Verify</button>
+        </form>
+      } @else {
+        <form class="card auth-card" (ngSubmit)="submit()">
+          <h1>{{ registering() ? 'Create account' : 'Sign in' }}</h1>
+          @if (registering()) {
+            <label>Full name <input class="input" name="fullName" [(ngModel)]="fullName" required /></label>
+          }
+          <label>Email <input class="input" name="email" type="email" [(ngModel)]="email" required /></label>
+          <label>Password <input class="input" name="password" type="password" [(ngModel)]="password" required /></label>
+          @if (error()) {
+            <div class="alert error">{{ error() }}</div>
+          }
+          <button class="btn primary block" type="submit" [disabled]="busy()">
+            {{ registering() ? 'Create account' : 'Sign in' }}
+          </button>
+          <button class="link" type="button" (click)="registering.set(!registering())">
+            {{ registering() ? 'I already have an account' : 'New here? Create an account' }}
+          </button>
+        </form>
+      }
 
       <aside class="card demo-accounts">
         <h3>Demo accounts</h3>
@@ -47,7 +59,9 @@ export class LoginPage {
   protected email = '';
   protected password = '';
   protected fullName = '';
+  protected code = '';
   protected readonly registering = signal(false);
+  protected readonly awaitingCode = signal(false);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -64,6 +78,24 @@ export class LoginPage {
     this.submit();
   }
 
+  /** Second step for staff accounts: the code from the authenticator app, or a recovery code. */
+  submitCode(): void {
+    this.busy.set(true);
+    this.error.set(null);
+    this.auth.verifySecondFactor(this.code).subscribe({
+      next: (result) => this.goHome(result.user?.role),
+      error: (e) => {
+        this.error.set(errorMessage(e));
+        this.busy.set(false);
+      },
+    });
+  }
+
+  private goHome(role: string | undefined): void {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    this.router.navigateByUrl(returnUrl ?? (role === 'CUSTOMER' ? '/' : '/admin'));
+  }
+
   submit(): void {
     this.busy.set(true);
     this.error.set(null);
@@ -71,10 +103,13 @@ export class LoginPage {
       ? this.auth.register(this.email, this.password, this.fullName)
       : this.auth.login(this.email, this.password);
     call.subscribe({
-      next: (user) => {
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        const home = user.role === 'CUSTOMER' ? '/' : '/admin';
-        this.router.navigateByUrl(returnUrl ?? home);
+      next: (result) => {
+        if (result.mfaRequired) {
+          this.awaitingCode.set(true);
+          this.busy.set(false);
+          return;
+        }
+        this.goHome(result.user?.role);
       },
       error: (e) => {
         this.error.set(errorMessage(e));

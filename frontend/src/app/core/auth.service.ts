@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { Role, User } from './models';
+import { LoginResult, Role, User } from './models';
 
 /**
  * The session lives in a HttpOnly cookie that this code cannot read, which is the point: a script
@@ -27,14 +27,23 @@ export class AuthService {
     this.restore();
   }
 
-  login(email: string, password: string): Observable<User> {
-    return this.http.post<User>('/api/auth/login', { email, password }).pipe(tap((user) => this.current.set(user)));
+  login(email: string, password: string): Observable<LoginResult> {
+    return this.http
+      .post<LoginResult>('/api/auth/login', { email, password })
+      .pipe(tap((result) => this.current.set(result.user)));
   }
 
-  register(email: string, password: string, fullName: string): Observable<User> {
+  /** Second step for a staff account: the code from the authenticator app, or a recovery code. */
+  verifySecondFactor(code: string): Observable<LoginResult> {
     return this.http
-      .post<User>('/api/auth/register', { email, password, fullName })
-      .pipe(tap((user) => this.current.set(user)));
+      .post<LoginResult>('/api/auth/mfa/verify', { code })
+      .pipe(tap((result) => this.current.set(result.user)));
+  }
+
+  register(email: string, password: string, fullName: string): Observable<LoginResult> {
+    return this.http
+      .post<LoginResult>('/api/auth/register', { email, password, fullName })
+      .pipe(tap((result) => this.current.set(result.user)));
   }
 
   logout(redirect = true): void {

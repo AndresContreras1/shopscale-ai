@@ -139,6 +139,16 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
+    public User requireById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User", String.valueOf(id)));
+    }
+
+    @Transactional(readOnly = true)
+    public User requireByEmail(String email) {
+        return userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new NotFoundException("User", email));
+    }
+
+    @Transactional(readOnly = true)
     public UserResponse me(String email) {
         return userRepository.findByEmailIgnoreCase(email).map(UserResponse::from)
                 .orElseThrow(() -> new NotFoundException("User", email));
