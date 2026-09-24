@@ -1,5 +1,5 @@
-# Defaults run with an in-memory H2 database so the API starts with zero setup.
-# Docker Compose overrides the datasource with PostgreSQL through environment variables.
+# The schema belongs to the Flyway migrations in db/migration; Hibernate only validates it.
+# Defaults point at a local PostgreSQL; Docker Compose overrides them with environment variables.
 spring:
   application:
     name: gamestore-api
@@ -20,16 +20,21 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: 6379
   datasource:
-    url: jdbc:h2:mem:gamestore;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
-    username: sa
-    password:
+    url: jdbc:postgresql://localhost:5432/gamestore
+    username: gamestore
+    password: gamestore
     hikari:
       # Each replica holds its own pool: replicas x pool size must stay below the database connection limit.
       maximum-pool-size: ${DB_POOL_SIZE:10}
       connection-timeout: 5000
+  flyway:
+    # One versioned file per change, never edited once it has run anywhere.
+    locations: classpath:db/migration
+    validate-on-migrate: true
   jpa:
     hibernate:
-      ddl-auto: update
+      # The database is migrated by Flyway: Hibernate must find the schema it expects, not create it.
+      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
