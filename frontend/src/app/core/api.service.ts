@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ApiError, Category, Order, Page, Product } from './models';
+import { Category, Order, Page, ProblemDetail, Product } from './models';
 
 export interface ProductQuery {
   q?: string;
@@ -62,12 +62,15 @@ export function toParams(query: object): HttpParams {
 /** Human-readable message from any backend error. */
 export function errorMessage(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
-    const body = error.error as ApiError | null;
+    const body = error.error as ProblemDetail | null;
     if (body?.fieldErrors && Object.keys(body.fieldErrors).length) {
       return Object.entries(body.fieldErrors).map(([f, m]) => `${f}: ${m}`).join(' · ');
     }
-    if (body?.message) {
-      return body.message;
+    if (body?.detail) {
+      return body.detail;
+    }
+    if (body?.title) {
+      return body.title;
     }
     if (error.status === 0) {
       return 'Cannot reach the API. Is the backend running?';

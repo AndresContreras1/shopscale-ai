@@ -2,6 +2,7 @@ package co.gamestore.catalog;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,6 +68,11 @@ class ProductApiTest {
                 """;
         mvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.type").value("https://gamestore.co/problems/validation-failed"))
+                .andExpect(jsonPath("$.code").value("validation-failed"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.instance").value("/api/products"))
                 .andExpect(jsonPath("$.fieldErrors.sku").exists())
                 .andExpect(jsonPath("$.fieldErrors.price").exists());
     }

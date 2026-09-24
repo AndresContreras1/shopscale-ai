@@ -24,9 +24,9 @@ System_Boundary("GameStore_boundary", "Game Store", $tags="") {
 
 }
 
+Rel(GameStore.GameStore.Audit, GameStore.GameStore.Common, "depends on", $techn="", $tags="", $link="")
 Rel(GameStore.GameStore.Security, GameStore.GameStore.Common, "depends on", $techn="", $tags="", $link="")
 Rel(GameStore.GameStore.Security, GameStore.GameStore.Audit, "uses", $techn="", $tags="", $link="")
-Rel(GameStore.GameStore.Audit, GameStore.GameStore.Common, "depends on", $techn="", $tags="", $link="")
 
 SHOW_LEGEND(true)
 hide stereotypes

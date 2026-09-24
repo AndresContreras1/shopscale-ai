@@ -35,7 +35,9 @@ class SecurityApiTest {
     void inventoryRequiresAuthentication() throws Exception {
         mvc.perform(get("/api/inventory"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status").value(401));
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.code").value("unauthenticated"))
+                .andExpect(jsonPath("$.type").value("https://gamestore.co/problems/unauthenticated"));
     }
 
     @Test

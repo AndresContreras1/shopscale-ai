@@ -8,10 +8,14 @@ export interface Page<T> {
   totalPages: number;
 }
 
-export interface ApiError {
+/** RFC 9457 problem document. `code` and `fieldErrors` are our extension members. */
+export interface ProblemDetail {
+  type?: string;
+  title?: string;
   status: number;
-  error: string;
-  message: string;
+  detail?: string;
+  instance?: string;
+  code?: string;
   fieldErrors?: Record<string, string>;
 }
 
