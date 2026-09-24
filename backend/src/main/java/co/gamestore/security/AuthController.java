@@ -1,7 +1,10 @@
 package co.gamestore.security;
 
+import co.gamestore.security.AuthDtos.EmailRequest;
 import co.gamestore.security.AuthDtos.LoginRequest;
+import co.gamestore.security.AuthDtos.PasswordResetRequest;
 import co.gamestore.security.AuthDtos.RegisterRequest;
+import co.gamestore.security.AuthDtos.TokenRequest;
 import co.gamestore.security.AuthDtos.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,6 +51,34 @@ public class AuthController {
     public UserResponse register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest,
                                  HttpServletResponse httpResponse) {
         return startSession(authService.register(request), httpRequest, httpResponse);
+    }
+
+    @PostMapping("/verify-email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void verifyEmail(@Valid @RequestBody TokenRequest request) {
+        authService.verifyEmail(request.token());
+    }
+
+    /**
+     * Always accepted, whether or not the address belongs to an account. Answering differently would
+     * turn this into a way of checking who shops here.
+     */
+    @PostMapping("/verify-email/resend")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void resendVerification(@Valid @RequestBody EmailRequest request) {
+        authService.requestEmailVerification(request.email());
+    }
+
+    @PostMapping("/password/forgot")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void forgotPassword(@Valid @RequestBody EmailRequest request) {
+        authService.requestPasswordReset(request.email());
+    }
+
+    @PostMapping("/password/reset")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+        authService.resetPassword(request.token(), request.password());
     }
 
     @GetMapping("/me")
