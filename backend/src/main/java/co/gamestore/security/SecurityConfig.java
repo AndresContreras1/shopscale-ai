@@ -1,6 +1,6 @@
 package co.gamestore.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import co.gamestore.common.ApiError;
 import co.gamestore.security.ratelimit.RateLimitFilter;
 import co.gamestore.security.ratelimit.RateLimiter;

@@ -1,7 +1,6 @@
 package co.gamestore.ai;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import co.gamestore.ai.AiDtos.AiReport;
 import co.gamestore.ai.AiDtos.AiStatus;
 import co.gamestore.ai.AiDtos.ReportType;
@@ -146,10 +145,7 @@ public class AiReportService {
     }
 
     private String toJson(Object facts) {
-        try {
-            return objectMapper.writeValueAsString(facts);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
-        }
+        // Jackson 3 throws unchecked JacksonException, so no checked catch is needed.
+        return objectMapper.writeValueAsString(facts);
     }
 }
