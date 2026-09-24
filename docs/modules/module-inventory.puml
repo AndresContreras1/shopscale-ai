@@ -25,9 +25,9 @@ System_Boundary("GameStore_boundary", "Game Store", $tags="") {
 
 }
 
-Rel(GameStore.GameStore.Audit, GameStore.GameStore.Common, "depends on", $techn="", $tags="", $link="")
 Rel(GameStore.GameStore.Catalog, GameStore.GameStore.Common, "uses", $techn="", $tags="", $link="")
 Rel(GameStore.GameStore.Catalog, GameStore.GameStore.Audit, "uses", $techn="", $tags="", $link="")
+Rel(GameStore.GameStore.Audit, GameStore.GameStore.Common, "depends on", $techn="", $tags="", $link="")
 Rel(GameStore.GameStore.Inventory, GameStore.GameStore.Catalog, "depends on", $techn="", $tags="", $link="")
 Rel(GameStore.GameStore.Inventory, GameStore.GameStore.Common, "uses", $techn="", $tags="", $link="")
 Rel(GameStore.GameStore.Inventory, GameStore.GameStore.Audit, "uses", $techn="", $tags="", $link="")
