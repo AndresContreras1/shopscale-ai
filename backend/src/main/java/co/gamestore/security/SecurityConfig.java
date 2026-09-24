@@ -50,7 +50,9 @@ public class SecurityConfig {
                         // A new id on login, so a session id planted before signing in is worthless.
                         .sessionFixation(fixation -> fixation.changeSessionId()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout",
+                                "/api/auth/verify-email", "/api/auth/verify-email/resend",
+                                "/api/auth/password/forgot", "/api/auth/password/reset").permitAll()
                         .requestMatchers("/api/products/import/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()

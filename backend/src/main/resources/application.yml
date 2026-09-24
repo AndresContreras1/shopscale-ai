@@ -20,8 +20,12 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: 6379
   session:
-    redis:
-      namespace: gamestore:session
+    data:
+      redis:
+        namespace: gamestore:session
+        # Indexed, so sessions can be found by who owns them. Needed to sign an account out
+        # everywhere after a password reset.
+        repository-type: indexed
   datasource:
     url: jdbc:postgresql://localhost:5432/gamestore
     username: gamestore
@@ -82,6 +86,8 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  # Used to build the links that go out by email.
+  base-url: ${APP_BASE_URL:http://localhost:8088}
   orders:
     # Unpaid checkouts hold stock for this long, then the reservation is released.
     reservation-ttl: PT15M

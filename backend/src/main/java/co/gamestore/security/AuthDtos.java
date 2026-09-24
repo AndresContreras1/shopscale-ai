@@ -19,10 +19,20 @@ public final class AuthDtos {
             @NotBlank @Size(max = 120) String fullName) {
     }
 
-    public record UserResponse(Long id, String email, String fullName, Role role) {
+    public record UserResponse(Long id, String email, String fullName, Role role, boolean emailVerified) {
 
         static UserResponse from(User user) {
-            return new UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRole());
+            return new UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRole(),
+                    user.isEmailVerified());
         }
+    }
+
+    public record EmailRequest(@NotBlank @Email String email) {
+    }
+
+    public record TokenRequest(@NotBlank String token) {
+    }
+
+    public record PasswordResetRequest(@NotBlank String token, @NotBlank String password) {
     }
 }

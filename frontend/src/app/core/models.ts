@@ -49,6 +49,7 @@ export interface User {
   email: string;
   fullName: string;
   role: Role;
+  emailVerified: boolean;
 }
 
 export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'EXPIRED';

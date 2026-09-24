@@ -40,6 +40,12 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    /** Proof that the address belongs to whoever registered it, not just that it was typed correctly. */
+    @Column(nullable = false)
+    private boolean emailVerified;
+
+    private Instant emailVerifiedAt;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -53,5 +59,14 @@ public class User {
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();
+    }
+
+    void markEmailVerified(Instant when) {
+        this.emailVerified = true;
+        this.emailVerifiedAt = when;
+    }
+
+    void changePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
     }
 }
