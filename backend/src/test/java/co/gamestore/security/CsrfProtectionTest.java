@@ -34,7 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @TestPropertySource(properties = "app.test.isolation=csrf")
 class CsrfProtectionTest {
 
-    private static final String LOGIN = "{\"email\":\"customer@gamestore.co\",\"password\":\"Customer123!\"}";
+    private static final String LOGIN = "{\"email\":\"customer@gamestore.co\",\"password\":\"Demo-Customer-2026!\"}";
 
     @Autowired
     MockMvc mvc;

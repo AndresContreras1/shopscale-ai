@@ -52,9 +52,9 @@ export class LoginPage {
   protected readonly error = signal<string | null>(null);
 
   protected readonly demoAccounts = [
-    { role: 'ADMIN', email: 'admin@gamestore.co', password: 'Admin123!' },
-    { role: 'OPERATOR', email: 'operator@gamestore.co', password: 'Operator123!' },
-    { role: 'CUSTOMER', email: 'customer@gamestore.co', password: 'Customer123!' },
+    { role: 'ADMIN', email: 'admin@gamestore.co', password: 'Demo-Admin-2026!' },
+    { role: 'OPERATOR', email: 'operator@gamestore.co', password: 'Demo-Operator-2026!' },
+    { role: 'CUSTOMER', email: 'customer@gamestore.co', password: 'Demo-Customer-2026!' },
   ];
 
   quickLogin(email: string, password: string): void {

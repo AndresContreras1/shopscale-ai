@@ -26,4 +26,11 @@ public class InMemoryRateLimiter implements RateLimiter {
         long hits = counters.computeIfAbsent(bucket, k -> new AtomicLong()).incrementAndGet();
         return limit - hits;
     }
+
+    @Override
+    public long remaining(String key, int limit, Duration window) {
+        long windowId = System.currentTimeMillis() / window.toMillis();
+        AtomicLong counter = counters.get(key + ":" + windowId);
+        return limit - (counter == null ? 0 : counter.get());
+    }
 }

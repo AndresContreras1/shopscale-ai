@@ -70,7 +70,10 @@ Stock is never cached. In Docker the cache is Redis, shared by every replica.
   role-based access (`ADMIN`, `OPERATOR`, `CUSTOMER`). See
   [ADR-008](adr/ADR-008-sessions-over-jwt.md) for why the token left the browser's storage.
 - Rate limiting per IP: 10 login attempts/min (brute force), 300 API calls/min. Stored in Redis so the
-  limit holds across replicas.
+  limit holds across replicas. Failed sign-ins are also counted per account, which a per-address
+  limit does not catch when the attacker has a list of addresses.
+- Passwords follow NIST 800-63B-4: at least 12 characters, no composition rules, no forced expiry,
+  and a check against Have I Been Pwned by k-anonymity, which never sends the password.
 - Constant-time login (no user enumeration), 404 instead of 403 for other customers' orders.
 - Audit log for sensitive actions; failed logins are recorded even though the request fails.
 - Validation on every input, uniform error body, no stack traces in responses.

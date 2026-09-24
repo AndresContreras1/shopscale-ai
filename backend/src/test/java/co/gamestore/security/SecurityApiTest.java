@@ -50,13 +50,13 @@ class SecurityApiTest {
 
     @Test
     void customersCannotSeeInventory() throws Exception {
-        Cookie[] session = login("customer@gamestore.co", "Customer123!", "10.0.0.1");
+        Cookie[] session = login("customer@gamestore.co", "Demo-Customer-2026!", "10.0.0.1");
         mvc.perform(get("/api/inventory").cookie(session)).andExpect(status().isForbidden());
     }
 
     @Test
     void operatorsCanSeeInventoryButCannotEditPrices() throws Exception {
-        Cookie[] session = login("operator@gamestore.co", "Operator123!", "10.0.0.2");
+        Cookie[] session = login("operator@gamestore.co", "Demo-Operator-2026!", "10.0.0.2");
         mvc.perform(get("/api/inventory").cookie(session)).andExpect(status().isOk());
         mvc.perform(post("/api/products").with(csrf()).cookie(session)
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
@@ -77,7 +77,7 @@ class SecurityApiTest {
      */
     @Test
     void storesTheSessionWhereEveryReplicaCanReadIt() throws Exception {
-        Cookie[] cookies = login("admin@gamestore.co", "Admin123!", "10.0.0.5");
+        Cookie[] cookies = login("admin@gamestore.co", "Demo-Admin-2026!", "10.0.0.5");
         String sessionCookie = Arrays.stream(cookies)
                 .filter(cookie -> !"XSRF-TOKEN".equals(cookie.getName()))
                 .map(Cookie::getValue)
@@ -92,12 +92,51 @@ class SecurityApiTest {
 
     @Test
     void signsOutByInvalidatingTheSession() throws Exception {
-        Cookie[] session = login("customer@gamestore.co", "Customer123!", "10.0.0.6");
+        Cookie[] session = login("customer@gamestore.co", "Demo-Customer-2026!", "10.0.0.6");
         mvc.perform(get("/api/auth/me").cookie(session)).andExpect(status().isOk());
 
         mvc.perform(post("/api/auth/logout").with(csrf()).cookie(session)).andExpect(status().isNoContent());
 
         mvc.perform(get("/api/auth/me").cookie(session)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void refusesToRegisterAPasswordThatIsTooShort() throws Exception {
+        mvc.perform(post("/api/auth/register").with(csrf()).header("X-Forwarded-For", "10.3.0.1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"weak@gamestore.co\",\"password\":\"short1234\","
+                                + "\"fullName\":\"Weak Password\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("password-rejected"))
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("at least 12")));
+    }
+
+    /**
+     * A per-address limit does nothing against an attacker with a list of addresses, so the account
+     * itself keeps score. After the budget is spent even the correct password is refused, and the
+     * answer never reveals that the account is being throttled.
+     */
+    @Test
+    void stopsAnsweringAnAccountAfterTooManyWrongPasswords() throws Exception {
+        String email = "throttled@gamestore.co";
+        String password = "una tarde tranquila de sabado";
+        mvc.perform(post("/api/auth/register").with(csrf()).header("X-Forwarded-For", "10.4.0.1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"%s\",\"password\":\"%s\",\"fullName\":\"Throttled\"}"
+                                .formatted(email, password)))
+                .andExpect(status().isCreated());
+
+        for (int attempt = 0; attempt < 8; attempt++) {
+            mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", "10.4.0." + (attempt + 2))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"%s\",\"password\":\"wrong guess here\"}".formatted(email)))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        mvc.perform(post("/api/auth/login").with(csrf()).header("X-Forwarded-For", "10.4.9.9")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password)))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

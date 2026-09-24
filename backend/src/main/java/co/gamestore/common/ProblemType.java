@@ -15,6 +15,7 @@ public enum ProblemType {
 
     BAD_REQUEST("bad-request", "Bad request", HttpStatus.BAD_REQUEST),
     VALIDATION_FAILED("validation-failed", "Validation failed", HttpStatus.BAD_REQUEST),
+    PASSWORD_REJECTED("password-rejected", "Password rejected", HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED("unauthenticated", "Authentication required", HttpStatus.UNAUTHORIZED),
     FORBIDDEN("forbidden", "Insufficient permissions", HttpStatus.FORBIDDEN),
     NOT_FOUND("not-found", "Resource not found", HttpStatus.NOT_FOUND),
